@@ -1,0 +1,54 @@
+﻿<Window x:Class="Pactometro.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Pactometro"
+        mc:Ignorable="d"
+        Title="Pactometro" Height="450" Width="800"
+        MinHeight="450"
+        MinWidth="800">
+    <!-- Añadimos un favicon a la ventana (meramente estético) -->
+    <Window.Icon>
+        <!-- La UriSource la vamos a determinar con una composición de Uris-->
+        <!-- new Uri(new Uri("pack://application:,,,/"),new Uri("pack:/Pactometro;component/main.ico")) -->
+        <BitmapImage UriSource="pack://application:,,,/Pactometro;component/main.ico"/>
+    </Window.Icon>
+    <DockPanel Name="panel">
+        <!-- Vamos a empezar creando el menu -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Opciones" Name="_opciones">
+                <MenuItem Header="Ver datos" Name="_verDatos" Click="SwitchWindow"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Gráficos">
+                <MenuItem Header="Barras" Name="_Barras"/>
+                <MenuItem Header="Comparativo" Name="_comparativo" Click="GraphCompare"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Title of the election centered at the top -->
+        <TextBlock Name="tituloGrafica" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,0,0" FontSize="16" FontWeight="Bold" DockPanel.Dock="Top"/>
+
+        <!-- Canvas to display the graph, in the middle of the DockPanel -->
+        <Canvas Name="lienzo">
+            <!-- Y-axis marks -->
+            <Line X1="40" Y1="20" X2="40" Y2="300" Stroke="Black"/>
+            <Line X1="40" Y1="20" X2="35" Y2="20" Stroke="Black"/>
+            <!-- Add more Y-axis marks as needed -->
+
+            <!-- Bars and labels -->
+            <ItemsControl ItemsSource="{Binding Partidos}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Margin="10">
+                            <Rectangle Width="50" Height="{Binding Votos}" Fill="{Binding Color}"/>
+                            <TextBlock Text="{Binding Nombre}" Margin="5,0,0,0"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Canvas>
+    </DockPanel>
+
+
+</Window>

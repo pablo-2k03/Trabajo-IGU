@@ -1,0 +1,54 @@
+﻿<Window x:Class="Pactometro.DatosGraficas"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Pactometro"
+        mc:Ignorable="d"
+        Title="Datos de las graficas" Height="450" Width="800"
+        MinHeight="450"
+        MinWidth="800">
+    <!-- Añadimos un favicon a la ventana (meramente estético) -->
+    <Window.Icon>
+        <!-- La UriSource la vamos a determinar con una composición de Uris-->
+        <!-- new Uri(new Uri("pack://application:,,,/"),new Uri("pack:/Pactometro;component/dg.ico")) -->
+        <BitmapImage UriSource="pack://application:,,,/Pactometro;component/dg.ico"/>
+    </Window.Icon>
+    <Grid>
+        <!-- Vamos a crear 2 filas donde van a ir los listviews determinados.  -->
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <!-- El menu es un desplegable para poder añadir datos, cargar unos por defecto y más.-->
+        <Menu Background="White">
+            <MenuItem Header="Opciones" Background="LightGray">
+                <MenuItem Header="Añadir Datos" Name="_newData" Click="AddElectionData"/>
+                <MenuItem Header="Cargar Datos Prueba" Name="_load" Click="LoadDataTests"/>
+            </MenuItem>
+        </Menu>
+        <!-- Añadimos un margen (30) para que no quede pegado a los laterales y quede más bonito. -->
+        <!-- Creamos también 2 ListViews para en un futuro poder seleccionar los datos de las elecciones. -->
+        <!-- El primero va a contener los datos generales de las elecciones, y el segundo los datos de los votos de cada partido. -->
+        <ListView Grid.Row="0" Margin="30" x:Name="resultadosLV" MouseDoubleClick="ResultadosLV_MouseDoubleClick" ItemsSource="{Binding ResultadosElectorales}">
+            <ListView.View>
+                <!-- Para visualizar los datos correctamente, vamos a añadir un GridView para establecer las columnas con los datos de la lista (C#). -->
+                <GridView x:Name="datosGenerales">
+                    <GridViewColumn Header="ELECCIÓN" DisplayMemberBinding="{Binding Nombre}" Width="300"/>
+                    <GridViewColumn Header="FECHA" DisplayMemberBinding="{Binding FechaElecciones}" Width="100"/>
+                    <GridViewColumn Header="Número de Escaños" DisplayMemberBinding="{Binding NumEscaños}" Width="150"/>
+                    <GridViewColumn Header="Mayoría absoluta" DisplayMemberBinding="{Binding Mayoria}" Width="120"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <!-- Vamos a hacer lo mismo para que para los datos generales, para los datos específicos de los partidos. -->
+        <ListView Grid.Row="1" Margin="30" x:Name="resultadosLV2">
+            <ListView.View>
+                <GridView x:Name="partyResultsGridView">
+                    <GridViewColumn Header="PARTIDO" DisplayMemberBinding="{Binding Key}" Width="100"/>
+                    <GridViewColumn Header="Escaños" DisplayMemberBinding="{Binding Value}" Width="100"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>

@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Pactometro.AddData">
+    <Position X="6.75" Y="0.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="Pactometro.AddData.AutonomousCommunity" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>AddData.xaml.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Delegate Name="Pactometro.AddData.crearPartido" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>AddData.xaml.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>CgEAAACIABAAAkAAAABAECCAAAQAAACAQEAEAAEAAAA=</HashCode>
+      <FileName>AddData.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Pactometro.App" Collapsed="true">
+    <Position X="10" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>App.xaml.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Pactometro.CustomEventArgs" Collapsed="true">
+    <Position X="11.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAIAAAACAEAAAAAAAAAAAAAAACAAAAgAAAAAAA=</HashCode>
+      <FileName>CustomEventArgs.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Pactometro.CustomEventArgsAddParty" Collapsed="true">
+    <Position X="11.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAgIAAAAA=</HashCode>
+      <FileName>CustomEventArgs.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Pactometro.CustomEventArgsMain" Collapsed="true">
+    <Position X="9" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>CustomEventArgs.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Pactometro.DatosGraficas">
+    <Position X="4.5" Y="1" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Delegate Name="Pactometro.DatosGraficas.cargaDatos" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>DatosGraficas.xaml.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Delegate Name="Pactometro.DatosGraficas.delegadoCambioV" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>DatosGraficas.xaml.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Delegate Name="Pactometro.DatosGraficas.DataSelectedEventHandler" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>DatosGraficas.xaml.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Delegate Name="Pactometro.DatosGraficas.DatosGraficasClosedEventHandler" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>DatosGraficas.xaml.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Delegate Name="Pactometro.DatosGraficas.createNewData" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>DatosGraficas.xaml.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AEAAAAAIAAAgAAAAAABBCCAAAAAAgAAAwAAAIAAgAAA=</HashCode>
+      <FileName>DatosGraficas.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Pactometro.MainWindow">
+    <Position X="1.75" Y="1" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Delegate Name="Pactometro.MainWindow.delegadoCambioV" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>MainWindow.xaml.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAEAIJAAAQBAAIAAAAAAAAgAAAQAAAAAgABABAAAAAA=</HashCode>
+      <FileName>MainWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.22" />
+  </Class>
+  <Class Name="Pactometro.Partido" Collapsed="true">
+    <Position X="9" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gEAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgAAAAAA=</HashCode>
+      <FileName>Partido.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Pactometro.Utils">
+    <Position X="9.25" Y="5.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="Pactometro.Utils.AddDataWindowSingleton" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Utils.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Pactometro.Utils.DatosGraficasWindowSingleton" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Utils.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Pactometro.Utils.DataModelSingleton" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Utils.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Pactometro.Utils.MainWindowSingleton" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Utils.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Utils.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Pactometro.ModeloDatos">
+    <Position X="6.5" Y="5.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="Pactometro.ModeloDatos.TIPO_ELECCIONES" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>ModeloDatos.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAACACAAgABAAAABAgUAAgBAAAAAAAAiAAAIABAI=</HashCode>
+      <FileName>ModeloDatos.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

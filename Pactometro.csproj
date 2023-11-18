@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>True</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="dg.ico" />
+    <None Remove="main.ico" />
+    <None Remove="suma.ico" />
+    <None Remove="testCases.txt" />
+    <None Remove="updata.ico" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Resource Include="dg.ico" />
+    <Resource Include="main.ico" />
+    <Resource Include="suma.ico" />
+    <Resource Include="testCases.txt" />
+    <Resource Include="updata.ico" />
+  </ItemGroup>
+
+</Project>
