@@ -24,6 +24,7 @@ namespace Pactometro
 
         //Delegado encargado de eliminar los datos (el parametro eventArgs acepta valores nulos)
         public delegate void DataRemove(object sender, EventArgs? e);
+        public event DataRemove removeData;
 
         //Manejadora del evento y evento para gestionar cuando esta ventana ha sido cerrada.
         public delegate void DatosGraficasClosedEventHandler(object sender, EventArgs e);
@@ -51,12 +52,9 @@ namespace Pactometro
         //Delegado encargado de mostrar en la nueva ventana nada mas lanzarse los datos necesarios para que el usuario sepa cual son los actuales.
         private updateData _updateData;
         
-        //Delegado encargado de eliminar los datos.
-        private DataRemove _removeData;
 
         //Instancias de los modelos que nos van a servir para añadir a los eventos y delegados los gestores.
         private ModeloDatos md;
-        private MainWindow _mainWindow;
         private UpdateData upd;
 
         //Modelo de datos a reemplazar cuando este seleccionado
@@ -67,17 +65,13 @@ namespace Pactometro
             InitializeComponent();
             
             //Instancias de las clases.
-            _mainWindow = Utils.MainWindowSingleton.GetInstance();
             md = Utils.DataModelSingleton.GetInstance();
             upd = Utils.UpdateDataSingleton.GetInstance();
 
             //Eventos de la propia ventana
-            DataSelected += _mainWindow.OnDataSelected;
-            DatosGraficasClosed += _mainWindow.OnCloseDatosGraficas;
             Closing += DatosGraficas_Closing;
 
             //Delegados y manejadoras.
-            _removeData += _mainWindow.removeData;
             _v += AddData.NewWindow;
             _delegadoCargaDatos += md.LoadDataTests;
             _addData += md.CreateNewData;
@@ -87,7 +81,7 @@ namespace Pactometro
             _actualizarDatos += md.UpdateData;
         }
 
-        public static void NewWindow(object sender, RoutedEventArgs e)
+        public void NewWindow(object sender, RoutedEventArgs e)
         {
             DatosGraficas c = Utils.DatosGraficasWindowSingleton.GetInstance();
             c.Show();
@@ -159,7 +153,7 @@ namespace Pactometro
                         resultadosLV2.ItemsSource = null;
                         resultadosLV2.Items.Refresh();
 
-                        _removeData?.Invoke(this, null);
+                        removeData(this,null);
                     };
 
                     // Añadimos los items del menu al contexto del menu.
@@ -193,7 +187,6 @@ namespace Pactometro
             _addData?.Invoke(this, c);
             
             resultadosLV.ItemsSource = md.ResultadosElectorales;
-            resultadosLV.Items.Refresh();
 
         }
         //Evento para controlar cuando se está cerrando la ventana secundaria.
@@ -221,7 +214,6 @@ namespace Pactometro
             _actualizarDatos?.Invoke(this, c);
 
             resultadosLV.ItemsSource = md.ResultadosElectorales;
-            resultadosLV.Items.Refresh();
             
 
         }

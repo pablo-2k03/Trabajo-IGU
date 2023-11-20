@@ -14,7 +14,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using static Pactometro.AddData;
 
 namespace Pactometro
 {
@@ -33,7 +32,7 @@ namespace Pactometro
         private Partido p = new();
         private int nEscaños = 0;
         private TextBox electorEscaños;
-
+        private DatosGraficas c;
         public UpdateData()
         {
             InitializeComponent();

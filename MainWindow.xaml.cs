@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+
 namespace Pactometro
 {
 
@@ -15,17 +16,20 @@ namespace Pactometro
         //Delegado encargado de gestionar cambios de ventana.
         public delegate void delegadoCambioV(object sender, RoutedEventArgs a);
 
-
         private delegadoCambioV _v;
         private Dictionary<string, Partido> bufPartidos;
+        private DatosGraficas c;
         public MainWindow()
         {
             InitializeComponent();
             //Le añadimos al delegado el metodo de cambiar de ventana.
-            _v += DatosGraficas.NewWindow;
-
             //Cuando el tamaño de la ventana cambie, el canvas se va a reescalar.
             SizeChanged += MainWindow_SizeChanged;
+            c = Utils.DatosGraficasWindowSingleton.GetInstance();
+            _v += c.NewWindow;
+            c.DataSelected += OnDataSelected;
+            c.DatosGraficasClosed += OnCloseDatosGraficas;
+            c.removeData += removeData;
 
             //Cuando la ventana principal se cierre todas las demas se tienen que cerrar
             Closing += MainWindow_Closing;
@@ -39,6 +43,14 @@ namespace Pactometro
 
         private void SwitchWindow(object sender, RoutedEventArgs e)
         {
+            if(c == null)
+            {
+                c = Utils.DatosGraficasWindowSingleton.GetInstance();
+                c.DataSelected += OnDataSelected;
+                c.DatosGraficasClosed += OnCloseDatosGraficas;
+                c.removeData += removeData;
+            }
+
             _v?.Invoke(sender, e);
         }
 
@@ -87,82 +99,99 @@ namespace Pactometro
             
         }
 
-        private void GraphBarras(Dictionary<string, Partido> infoPartidos, double maxHeightScale = 0.8)
+        private void GraphBarras(Dictionary<String, Partido> infoPartidos,Boolean isMax=false)
         {
+            double maxHeight = lienzo.ActualHeight; // Maximum height of bars (adjust as needed)
+            double barWidth = 20; // Width of each bar
+            double xPos = 20; // X-coordinate to start drawing bars
+            int maxVotes = infoPartidos.Values.Max(partido => partido.Votos); // Maximum number of votes
 
-            double maxHeight = lienzo.ActualHeight; // Obtener la altura maxima del lienzo
-            double barWidth = 15; // Ancho de la barra
-            int maxVotes = infoPartidos.Values.Max(partido => partido.Votos); // Obtener el numero maximo de votos.
-
-            //Creamos los ejes de coordenadas.
-            Line yAxis = new Line
+            if(isMax)
             {
-                X1 = 0, 
-                Y1 = 0,
-                X2 = 0, 
-                Y2 = lienzo.ActualHeight, 
-                Stroke = Brushes.Black, 
-                StrokeThickness = 2 
-            };
 
-            Line xAxis = new Line
+                dibujarMarcas(maxVotes, maxHeight,5);
+            }
+            else
             {
-                X1 = 0,
-                Y1 = lienzo.ActualHeight,
-                X2 = lienzo.ActualWidth,
-                Y2 = lienzo.ActualHeight,
-                Stroke = Brushes.Black, 
-                StrokeThickness = 2 
-            };
-            
+                dibujarMarcas(maxVotes, maxHeight, 20);
+            }
 
-            // Añadimos los ejes al canvas
-            lienzo.Children.Add(yAxis);
-            lienzo.Children.Add(xAxis);
 
-            int xPos = 10;
-            foreach(var partido in infoPartidos)
+            foreach (var p in infoPartidos)
             {
-                string nombre = partido.Key;
-                int escaños = partido.Value.Votos;
-                System.Drawing.Color color = partido.Value.Color;
+                double barHeight = (p.Value.Votos / (double)maxVotes) * maxHeight;
+
+                Partido partido = p.Value;
+
                 Color partidoColor;
-                double barHeight = (partido.Value.Votos / (double)maxVotes) * maxHeight;
 
-                if (color.ToString() != "Color [Empty]")
+                //Comprobamos si la propiedad Color del partido tiene asignado algo o es nulo, si lo tiene se lo asignamos y sino dejamos el azul por defecto.
+
+                if (partido.Color.ToString() != "Color [Empty]")
                 {
-                    partidoColor = System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B);
+                    partidoColor = System.Windows.Media.Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B);
                 }
                 else
                 {
                     partidoColor = System.Windows.Media.Colors.Blue;
                 }
 
-                Rectangle bar = new()
+                Rectangle bar = new Rectangle
                 {
                     Width = barWidth,
                     Height = barHeight,
-                    Fill = new SolidColorBrush(partidoColor),
-                    Margin = new Thickness(0, 0, 0, 0)
+                    Fill = new SolidColorBrush(partidoColor)
                 };
 
-                bar.ToolTip = new ToolTip { Content = $"{partido.Value.Votos} votos" };
+                // Añadimos un toolTip para ver el numero de votos que tiene un partido cuando el raton pasa por encima.
+                bar.ToolTip = new ToolTip { Content = $"{p.Value.Votos} votos" };
 
                 //Añadimos el evento al gestor del primer elemento que pasemos como parametro.
                 AddEventHandler(bar, bar);
 
+
+                // Position the bar and add it to the canvas
                 Canvas.SetLeft(bar, xPos);
-                Canvas.SetBottom(bar, 0);
+                Canvas.SetBottom(bar, 0); // Align bars to the bottom of the canvas
                 lienzo.Children.Add(bar);
-                xPos += 50;
-            }
+
+
+
+                // Añadimos el nombre del partido en la parte inferior.
+                TextBlock partyNameLabel = new TextBlock
+                {
+                    Text = p.Key,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Top
+                };
+
+                //También se lo añadimos al nombre, por si se da el caso de que la barra sea tan pequeña q casi ni se vea.
+                AddEventHandler(partyNameLabel, bar);
+
+                //Calculamos el ancho del texto utilizando la clase FormattedText.
+                FormattedText formattedText = new FormattedText(
+                    p.Key,
+                    CultureInfo.CurrentCulture,
+                    FlowDirection.LeftToRight,
+                    new Typeface(partyNameLabel.FontFamily, partyNameLabel.FontStyle, partyNameLabel.FontWeight, partyNameLabel.FontStretch),
+                    partyNameLabel.FontSize,
+                    Brushes.Black,
+                    new NumberSubstitution(),
+                    1);
+
+                double textWidth = formattedText.Width;
+
+                //Ajustamos el nombre del partido de acuerdo a su ancho y al ancho de la barra.
+                partyNameLabel.Margin = new Thickness(xPos + (barWidth / 2) - (textWidth / 2), 0, 0, 0);
+
+                Canvas.SetBottom(partyNameLabel, -20);
+                lienzo.Children.Add(partyNameLabel);
+
+                //Añadimos espaciado entre barras.
+                xPos += barWidth + 32;
+
+            }   
         }
-
-
-
-
-
-
 
         private static void AddEventHandler(FrameworkElement e,Rectangle barra)
         {
@@ -199,23 +228,10 @@ namespace Pactometro
              */
 
             limpiaLienzo();
-            /*
-            this.bufPartidos?.Clear();
-            for(int i = 0;i< this.elecciones.Length;i++)
-            {
-                if (this.elecciones[i] != null)
-                {
-                    this.elecciones[i] = null;
-
-                }
-                else
-                {
-                    //El bucle finalizará cuando encuentre el primer indice que valga null.
-
-                    break;
-                }
-            }
-            */
+            c.DataSelected -= OnDataSelected;
+            c.DatosGraficasClosed -= OnCloseDatosGraficas;
+            c.removeData -= removeData;
+            c = null;
         }
 
         private void GraphCompare(object sender, RoutedEventArgs e)
@@ -240,24 +256,29 @@ namespace Pactometro
             UpdateCanvasSize();
         }
 
-        private void UpdateCanvasSize()
+        private void UpdateCanvasSize(Boolean max=false)
         {
-            double margin = 50;
+            double margin = 80;
             lienzo.Width = ActualWidth - 2 * margin;
             lienzo.Height = ActualHeight - 2 * margin;
             lienzo.Children.Clear();
             if(bufPartidos != null)
             {
                 lienzo.Background = Brushes.Beige;
-                GraphBarras(bufPartidos);
+                GraphBarras(bufPartidos,max);
 
             }
 
         }
 
-        private void stateChanged(object sender,EventArgs e)
+        private void stateChanged(object? sender,EventArgs e)
         {
             if(WindowState == WindowState.Maximized)
+            {
+                Boolean isMaxizimed = true;
+                UpdateCanvasSize(isMaxizimed);
+            }
+            else 
             {
                 UpdateCanvasSize();
             }
@@ -280,5 +301,38 @@ namespace Pactometro
             tituloGrafica.Text = string.Empty;
             lienzo.Background = Brushes.Transparent;
         }
+
+        private void dibujarMarcas(int maxVotes,double maxHeight,int intervalo)
+        {
+            // Draw marks at the left going from 10 to the max number of votes in increments of 10
+            for (int i = 10; i <= maxVotes; i += intervalo)
+            {
+
+
+                Line mark = new Line
+                {
+                    X1 = 0,
+                    X2 = 5,
+                    Y1 = maxHeight - (i / (double)maxVotes * maxHeight),
+                    Y2 = maxHeight - (i / (double)maxVotes * maxHeight),
+                    Stroke = Brushes.Black
+                };
+
+                lienzo.Children.Add(mark);
+
+                TextBlock markLabel = new TextBlock
+                {
+                    Text = i.ToString(),
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    Margin = new Thickness(-25, maxHeight - (i / (double)maxVotes * maxHeight) - 10, 0, 0)
+                };
+
+                lienzo.Children.Add(markLabel);
+            }
+        }
+
+
+
     }
 }

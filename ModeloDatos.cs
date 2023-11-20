@@ -12,7 +12,7 @@ namespace Pactometro
     
 
 
-    public class ModeloDatos
+    public class ModeloDatos : INotifyPropertyChanged
     {
 
         //Definición variables de clase
@@ -25,6 +25,8 @@ namespace Pactometro
 
         private static ObservableCollection<ModeloDatos> _resultadosElectorales = new();
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
 
         //Definición de propiedades de clase.
         public string Nombre
@@ -35,6 +37,7 @@ namespace Pactometro
                if (_nombre != value)
                 {
                     _nombre = value;
+                    PropertyChanged(this, new PropertyChangedEventArgs("Nombre"));
                 }
             }
         }
@@ -48,6 +51,7 @@ namespace Pactometro
                  if (_numEscaños != value)
                 {
                     _numEscaños = value;
+                    PropertyChanged(this, new PropertyChangedEventArgs("NumEscaños"));
                 }
             }
 
@@ -82,6 +86,7 @@ namespace Pactometro
                 if (_mayoria != value)
                 {
                     _mayoria = value;
+                    PropertyChanged(this, new PropertyChangedEventArgs("Mayoria"));
                 }
             }
         }
@@ -95,6 +100,7 @@ namespace Pactometro
                 if (_partidos != value)
                 {
                     _partidos = value;
+                    PropertyChanged(this, new PropertyChangedEventArgs("Partidos"));
                 }
             }
         }
@@ -103,7 +109,7 @@ namespace Pactometro
 
         public ModeloDatos()
         {
-            _fechaElecciones = "";
+            _fechaElecciones = string.Empty;
             _partidos = null;
             _nombre = "";
             _mayoria = 0;
