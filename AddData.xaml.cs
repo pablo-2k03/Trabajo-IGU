@@ -11,7 +11,8 @@ namespace Pactometro
     /// </summary>
     public partial class AddData : Window
     {
-        public event EventHandler<CustomEventArgs> DataAdded;
+
+        public event EventHandler<EventArgs> DataCreated;
 
         public enum AutonomousCommunity
         {
@@ -41,9 +42,12 @@ namespace Pactometro
         private Partido p = new();
         private int nEscaños=0;
         private TextBox electorEscaños;
-        public AddData()
+        private ModeloDatos modeloUnico;
+
+        public AddData(ModeloDatos modeloUnico)
         {
             InitializeComponent();
+            this.modeloUnico = modeloUnico;
         }
 
 
@@ -73,6 +77,7 @@ namespace Pactometro
                 if (calendario.SelectedDate.HasValue)
                 {
                     string date = calendario.SelectedDate.Value.ToString();
+
                     //Eliminamos la hora de la fecha, porque el formato original es 02/11/23 00:00:00
                     string[] tokens = date.Split(" ");
                     date = tokens[0];
@@ -88,12 +93,13 @@ namespace Pactometro
                             Partidos.Add(partidoName, partido);
                         }
 
-                        CustomEventArgs c = new(electionType, comunity, date, Partidos, nEscaños);
-                        DataAdded?.Invoke(this, c);
+                        modeloUnico.CreateNewData(electionType, date, comunity, Partidos, nEscaños);
+
                         nombre.Clear();
                         votos.Clear();
                         registroPartidos.Items.Clear();
-                        MessageBox.Show("Datos actualizados correctamente.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        DataCreated(this,e);
+                        MessageBox.Show("Datos añadidos correctamente.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                         this.Close();
                         return;
                     }
@@ -240,9 +246,10 @@ namespace Pactometro
             TextBlock textBlock = new()
             {
                 Text = "Comunidad",
-                HorizontalAlignment = HorizontalAlignment.Left,
+                HorizontalAlignment = HorizontalAlignment.Center,
                 FontWeight = FontWeights.Bold,
-                FontSize = 11,
+                FontSize = 15,
+                FontStretch = FontStretches.Condensed,
                 Margin = new Thickness(0, 10, 0, 10)
             };
 
@@ -252,6 +259,7 @@ namespace Pactometro
                 Name = "electorComunidad",
                 Width = 177,
                 HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(30, 0, 0, 0)
             };
 
             foreach (AutonomousCommunity community in Enum.GetValues(typeof(AutonomousCommunity)))
@@ -264,9 +272,10 @@ namespace Pactometro
             TextBlock tb2 = new()
             {
                 Text = "Escaños",
-                HorizontalAlignment = HorizontalAlignment.Left,
+                HorizontalAlignment = HorizontalAlignment.Center,
                 FontWeight = FontWeights.Bold,
-                FontSize = 11,
+                FontSize = 15,
+                FontStretch = FontStretches.Condensed,
                 Margin = new Thickness(0, 10, 0, 10)
             };
 
@@ -274,7 +283,8 @@ namespace Pactometro
             {
                 Name = "electorEscaños",
                 Width = 177,
-                HorizontalAlignment = HorizontalAlignment.Left
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(30, 0, 0, 0)
             };
 
 

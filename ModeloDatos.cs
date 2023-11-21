@@ -9,61 +9,16 @@ using System.Drawing;
 
 namespace Pactometro
 {
-    
+   
 
-
-    public class ModeloDatos : INotifyPropertyChanged
+    public class ModeloDatos
     {
 
-        //Definición variables de clase
+
+        private ObservableCollection<Eleccion> _resultadosElectorales;
         private enum TIPO_ELECCIONES { GENERALES, AUTONÓMICAS };
-        private string _nombre;
-        private string _fechaElecciones;
-        private int _mayoria;
-        private Dictionary<string, Partido> _partidos;
-        private int _numEscaños;
 
-        private static ObservableCollection<ModeloDatos> _resultadosElectorales = new();
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-
-        //Definición de propiedades de clase.
-        public string Nombre
-        {
-            get { return _nombre; }
-            set
-            {
-               if (_nombre != value)
-                {
-                    _nombre = value;
-                    PropertyChanged(this, new PropertyChangedEventArgs("Nombre"));
-                }
-            }
-        }
-
-        public int NumEscaños
-        {
-            get { return _numEscaños; }
-
-            set
-            {
-                 if (_numEscaños != value)
-                {
-                    _numEscaños = value;
-                    PropertyChanged(this, new PropertyChangedEventArgs("NumEscaños"));
-                }
-            }
-
-        }
-        
-        public string FechaElecciones
-        {
-            get { return _fechaElecciones; }
-
-        }
-
-        public  ObservableCollection<ModeloDatos> ResultadosElectorales
+        public  ObservableCollection<Eleccion> ResultadosElectorales
         {
             get { return _resultadosElectorales; }
 
@@ -75,69 +30,12 @@ namespace Pactometro
                 }
             }
         }
-
-
-        public int Mayoria
-        {
-            get { return _mayoria; }
-
-            set
-            {
-                if (_mayoria != value)
-                {
-                    _mayoria = value;
-                    PropertyChanged(this, new PropertyChangedEventArgs("Mayoria"));
-                }
-            }
-        }
-
-        public Dictionary<string, Partido> Partidos
-        {
-            get { return _partidos; }
-
-            set
-            {
-                if (_partidos != value)
-                {
-                    _partidos = value;
-                    PropertyChanged(this, new PropertyChangedEventArgs("Partidos"));
-                }
-            }
-        }
-
+   
         
 
         public ModeloDatos()
         {
-            _fechaElecciones = string.Empty;
-            _partidos = null;
-            _nombre = "";
-            _mayoria = 0;
-            _numEscaños = 0;
-            _resultadosElectorales = new ObservableCollection<ModeloDatos>();
-        }
-
-
-        public ModeloDatos(string tipoElecciones, string fecha, Dictionary<string, Partido> partidos, string nombre,int nEscaños=81)
-        {
-
-            switch (tipoElecciones.ToUpper())
-            {
-                case "GENERALES":
-                    _mayoria = 176;
-                    _numEscaños = 350;
-                    break;
-                case "AUTONÓMICAS":
-                    _mayoria = nEscaños/2+1;
-                    _numEscaños = nEscaños;
-                    break;
-                default:
-                    _mayoria = 0;
-                    break;
-            }
-            _fechaElecciones = fecha;
-            _partidos = partidos;
-            _nombre = nombre;
+            _resultadosElectorales = new ObservableCollection<Eleccion>();
         }
 
 
@@ -152,7 +50,7 @@ namespace Pactometro
             string[] lines = File.ReadAllLines(path);
 
             TIPO_ELECCIONES tipoElecciones = TIPO_ELECCIONES.GENERALES;
-            string fechaElecciones = null;
+            string fechaElecciones = string.Empty;
             Dictionary<string, int> partidosInfo = new();
             string nombre = string.Empty;
 
@@ -166,14 +64,15 @@ namespace Pactometro
                         //Y luego si lo borramos, se nos borraria todo.
 
                         Dictionary<String, Partido> partidos = new();
+
                         foreach (var v in partidosInfo)
                             partidos.Add(v.Key, new Partido(v.Key,v.Value,default));
 
                         //Creamos una clase de datos y la guardamos a la coleccion.
 
 
-                        ModeloDatos resultados = new(tipoElecciones.ToString(), fechaElecciones, partidos, nombre);
-                        modeloUnico.ResultadosElectorales.Add(resultados);
+                        Eleccion resultados = new(tipoElecciones.ToString(), fechaElecciones, partidos, nombre);
+                        ResultadosElectorales.Add(resultados);
 
                         //Limpiamos el diccionario que nos sirve de recopilacion de partidos.
                         partidosInfo.Clear();
@@ -228,61 +127,50 @@ namespace Pactometro
                 foreach (var v in partidosInfo)
                     partidos.Add(v.Key, new Partido(v.Key, v.Value, default));
 
-                ModeloDatos resultados = new(tipoElecciones.ToString(), fechaElecciones, partidos, nombre);
-                modeloUnico.ResultadosElectorales.Add(resultados);
+                Eleccion resultados = new(tipoElecciones.ToString(), fechaElecciones, partidos, nombre);
+                ResultadosElectorales.Add(resultados);
             }
 
         }
 
 
 
-        public void CreateNewData(object sender, CustomEventArgs c)
+        public void CreateNewData(string tipoEleccion, string fechaElectoral, string comunidad, Dictionary<string, Partido> partidos, int nEscaños)
         {
 
 
-            ModeloDatos modeloUnico = Utils.DataModelSingleton.GetInstance();
-
-            string tipo = c.tipoEleccion;
-            string fecha = c.fechaElectoral;
-            string comunidad = c.comunidad;
-            Dictionary<string, Partido> partidos = c.infoPartidos;
             Dictionary<string, Partido> infoPartidos = new();
-            int nEscaños = c.nEscaños;
+
             foreach (var i in partidos)
             {
                 infoPartidos.Add(i.Key, i.Value);
             }
 
             string nombreelec;
-            if (tipo == "GENERALES")
+            if (tipoEleccion == "GENERALES")
             {
-                nombreelec = "Elecciones Generales " + fecha; 
+                nombreelec = "Elecciones Generales " + fechaElectoral; 
             }
             else
             {
-                nombreelec = "Autonómicas Comunidad de "+ comunidad +" "+ fecha;
+                nombreelec = "Autonómicas Comunidad de "+ comunidad +" "+ fechaElectoral;
             }
-            ModeloDatos nuevo = new(tipo, fecha, infoPartidos,nombreelec,nEscaños);
-            modeloUnico.ResultadosElectorales.Add(nuevo);
+            Eleccion nuevo = new(tipoEleccion, fechaElectoral, infoPartidos,nombreelec,nEscaños);
+            ResultadosElectorales.Add(nuevo);
+            return;
         }
 
 
-        public void UpdateData(object sender, CustomEventArgs c)
+        public void UpdateData(string tipoEleccion,string fechaElectoral,string comunidad,Dictionary<string,Partido> partidos,int nEscaños,Eleccion eleccionAReemplazar)
         {
-            ModeloDatos modeloAReemplazar = c.ModeloDatosAReemplazar;
 
             // Buscamos el indice del modelo que tenemos que reemplazar.
-            int indexToReplace = ResultadosElectorales.IndexOf(modeloAReemplazar);
+            int indexToReplace = ResultadosElectorales.IndexOf(eleccionAReemplazar);
 
             //Si está en la lista.
             if (indexToReplace != -1)
             {
-                string tipo = c.tipoEleccion;
-                string fecha = c.fechaElectoral;
-                string comunidad = c.comunidad;
-                Dictionary<string, Partido> partidos = c.infoPartidos;
                 Dictionary<string, Partido> infoPartidos = new();
-                int nEscaños = c.nEscaños;
 
                 foreach (var i in partidos)
                 {
@@ -290,16 +178,16 @@ namespace Pactometro
                 }
 
                 string nombreelec;
-                if (tipo == "GENERALES")
+                if (tipoEleccion == "GENERALES")
                 {
-                    nombreelec = "Elecciones Generales " + fecha;
+                    nombreelec = "Elecciones Generales " + fechaElectoral;
                 }
                 else
                 {
-                    nombreelec = "Autonómicas Comunidad de " + comunidad + " " + fecha;
+                    nombreelec = "Autonómicas Comunidad de " + comunidad + " " + fechaElectoral;
                 }
 
-                ModeloDatos nuevo = new ModeloDatos(tipo, fecha, infoPartidos, nombreelec, nEscaños);
+                Eleccion nuevo = new Eleccion(tipoEleccion, fechaElectoral, infoPartidos, nombreelec, nEscaños);
 
                 // Reemplazamos el modelo antiguo por el nuevo
                 ResultadosElectorales[indexToReplace] = nuevo;

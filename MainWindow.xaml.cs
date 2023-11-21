@@ -273,7 +273,7 @@ namespace Pactometro
             }
         }
 
-        public void OnDataRemoved(object sender,EventArgs? e)
+        public void OnDataRemoved(object sender,EventArgs e)
         {
             limpiaLienzo();
         }
@@ -299,7 +299,7 @@ namespace Pactometro
                     X2 = 5,
                     Y1 = maxHeight - (i / (double)maxVotes * maxHeight),
                     Y2 = maxHeight - (i / (double)maxVotes * maxHeight),
-                    Stroke = Brushes.Black
+                    Stroke = Brushes.Red
                 };
 
                 lienzo.Children.Add(mark);
@@ -309,7 +309,8 @@ namespace Pactometro
                     Text = i.ToString(),
                     HorizontalAlignment = HorizontalAlignment.Right,
                     VerticalAlignment = VerticalAlignment.Bottom,
-                    Margin = new Thickness(-25, maxHeight - (i / (double)maxVotes * maxHeight) - 10, 0, 0)
+                    Margin = new Thickness(-25, maxHeight - (i / (double)maxVotes * maxHeight) - 10, 0, 0),
+                    Foreground = Brushes.Red
                 };
 
                 lienzo.Children.Add(markLabel);

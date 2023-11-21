@@ -31,7 +31,7 @@ namespace Pactometro
         private TextBox electorEscaños;
 
         private ModeloDatos modeloUnico;
-        private ModeloDatos modeloAReemplazar;
+        private Eleccion eleccionAReemplazar;
 
         public UpdateData()
         {
@@ -62,17 +62,14 @@ namespace Pactometro
             Murcia
         }
 
-        public void displayData(object sender, CustomEventArgs e,ModeloDatos modeloUnico)
+        public void displayData(string nombre,string fecha,Dictionary<string,Partido> partidos,Eleccion eleccionAReemplazar,ModeloDatos modeloUnico)
         {
-            string nombre = e.tipoEleccion;
-            string fecha = e.fechaElectoral;
-            string comunidad = e.comunidad;
 
             this.modeloUnico = modeloUnico;
-            this.modeloAReemplazar = e.ModeloDatosAReemplazar;
+            this.eleccionAReemplazar = eleccionAReemplazar;
 
-            Dictionary<string,Partido> partidos = e.infoPartidos;
-            string tipoEleccion = "";
+            string tipoEleccion = string.Empty;
+            string comunidad = string.Empty;
 
             string[] tokens = nombre.Split(" ");
 
@@ -151,9 +148,7 @@ namespace Pactometro
                             Partidos.Add(partidoName, partido);
                         }
 
-                        CustomEventArgs c = new(electionType, comunity, date, Partidos, nEscaños);
-                        c.ModeloDatosAReemplazar = this.modeloAReemplazar;
-                        modeloUnico.UpdateData(this, c);
+                        modeloUnico.UpdateData(electionType,date,comunity,Partidos,nEscaños, eleccionAReemplazar);
 
                         nombre.Clear();
                         votos.Clear();

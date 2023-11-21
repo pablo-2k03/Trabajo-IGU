@@ -16,23 +16,18 @@ namespace Pactometro
     {
 
         //Manejadora del evento y evento para gestionar cuando unos datos han sido seleccionados.
-        public delegate void DataSelectedEventHandler(object sender, CustomEventArgsMain e); 
-        public event DataSelectedEventHandler DataSelected; 
+        public event EventHandler<CustomEventArgsMain> DataSelected; 
 
         //Delegado encargado de eliminar los datos (el parametro eventArgs acepta valores nulos)
-        public delegate void DataRemove(object sender, EventArgs? e);
-        public event DataRemove removeData;
+        public event EventHandler<EventArgs> removeData;
 
         //Manejadora del evento y evento para gestionar cuando esta ventana ha sido cerrada.
-        public delegate void DatosGraficasClosedEventHandler(object sender, EventArgs e);
-        public event DatosGraficasClosedEventHandler DatosGraficasClosed;
+        public event EventHandler<EventArgs> DatosGraficasClosed;
 
 
         //Instancia del modelo unico que será el almacen de datos.
         private ModeloDatos modeloUnico;
 
-        //Modelo de datos a reemplazar cuando este seleccionado
-        private ModeloDatos modeloAReemplazar;
         
         public DatosGraficas()
         {
@@ -49,20 +44,17 @@ namespace Pactometro
         private void AddElectionData(object sender, RoutedEventArgs e)
         {
 
-            AddData add = Utils.AddDataWindowSingleton.GetInstance(this);
-            add.DataAdded += cargarDatos;
+            AddData add = Utils.AddDataWindowSingleton.GetInstance(modeloUnico);
+            add.DataCreated += OnDataCreated;
             add.ShowDialog();
-            
+
         }
 
         //Cargar datos de prueba.
         private void LoadDataTests(object sender, RoutedEventArgs e)
         {
             modeloUnico.LoadDataTests();
-            if(modeloUnico.ResultadosElectorales == null)
-            {
-                return;
-            }
+
             resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;    
         }
 
@@ -85,35 +77,31 @@ namespace Pactometro
                     modifyMenuItem.Header = "Modificar datos electorales";
                     modifyMenuItem.Click += (modifySender, modifyEventArgs) =>
                     {
-
-                        this.modeloAReemplazar = (ModeloDatos)resultadosLV.SelectedItem;
-
-                        CustomEventArgs c = new(this.modeloAReemplazar.Nombre, "", this.modeloAReemplazar.FechaElecciones, this.modeloAReemplazar.Partidos);
-
-                        //Añadimos a la coleccion observable de nuestro modelo  la información que nos han pasado por AddData.
-                        c.ModeloDatosAReemplazar = this.modeloAReemplazar;
+                        //Eleccion a reemplazar cuando se seleccione
+                        Eleccion eleccionAReemplazar = (Eleccion)resultadosLV.SelectedItem;
 
                         UpdateData upd = Utils.UpdateDataSingleton.GetInstance(this);
-                        upd.displayData(this, c,modeloUnico);
+                        upd.displayData(eleccionAReemplazar.Nombre, eleccionAReemplazar.FechaElecciones, 
+                                        eleccionAReemplazar.Partidos,eleccionAReemplazar, modeloUnico);
                         upd.ShowDialog();
                         
                         
                     };
 
                     // Para eliminar un elemento, simplemente cogemos nuestro modelo unico y lo eliminamos de la lista de resultadosElectorales
-                    // Actualizamos las tablas y invocamos a un delegado para que notifique al mainwindow que hay que borrar la grafica.
+                    // Actualizamos las tablas y disparamos el evento que notifica al mainwindow que hay que borrar la grafica.
 
                     MenuItem deleteMenuItem = new MenuItem();
                     deleteMenuItem.Header = "Eliminar datos electorales";
                     deleteMenuItem.Click += (deleteSender, deleteEventArgs) =>
                     {
-                        modeloUnico.ResultadosElectorales.Remove((ModeloDatos)resultadosLV.SelectedItem);
+                        modeloUnico.ResultadosElectorales.Remove((Eleccion)resultadosLV.SelectedItem);
 
                         //La tabla de partidos se vacia.
                         resultadosLV2.ItemsSource = null;
 
                         //Lanzamos el evento removeData para que la MainWindow limpie el lienzo.
-                        removeData(this,null);
+                        removeData(this,e);
                     };
 
                     // Añadimos los items del menu al contexto del menu.
@@ -123,7 +111,7 @@ namespace Pactometro
                     // Añadimos el contexto a la propiedad listview.Context de los resultados.
                     resultadosLV.ContextMenu = contextMenu;
                 }
-                ModeloDatos selectedElection = (ModeloDatos)resultadosLV.SelectedItem;
+                Eleccion selectedElection = (Eleccion)resultadosLV.SelectedItem;
 
                 Dictionary<string, Partido> partyData = selectedElection.Partidos;
 
@@ -135,36 +123,24 @@ namespace Pactometro
 
                 //Enviamos los datos al MainWindow para su visualizacion.
                 CustomEventArgsMain args = new(selectedElection.Partidos,selectedElection.Nombre); 
-                DataSelected?.Invoke(this, args);
+                DataSelected(this, args);
 
             }
         }
-        //Función para añadir también los datos nuevos de la ventana AddData
-        public void cargarDatos(object? sender, CustomEventArgs c)
-        {
 
-            modeloUnico.CreateNewData(this, c);
-            
-            resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;
-
-        }
         //Evento para controlar cuando se está cerrando la ventana secundaria.
         private void DatosGraficas_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
-            DatosGraficasClosed?.Invoke(this, EventArgs.Empty);
+            DatosGraficasClosed(this, EventArgs.Empty);
 
             modeloUnico.ResultadosElectorales.Clear();
         }
 
-        public void actualizarDatos(object? sender, CustomEventArgs c)
+        private void OnDataCreated(object? sender,EventArgs e)
         {
-
-            modeloUnico.UpdateData(this, c);
-
             resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;
-            
-
         }
+
     }
         
 }

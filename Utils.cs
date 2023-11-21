@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 
 namespace Pactometro
@@ -27,11 +27,11 @@ namespace Pactometro
         {
             private static AddData _instance = null;
 
-            public static AddData GetInstance()
+            public static AddData GetInstance(ModeloDatos modeloUnico)
             {
                 if (_instance == null)
                 {
-                    _instance = new AddData();
+                    _instance = new AddData(modeloUnico);
                     _instance.Closed += (sender, e) => _instance = null;
                 }
                 return _instance;
@@ -48,27 +48,11 @@ namespace Pactometro
             }
         }
 
-        public static class MainWindowSingleton
-        {
-            private static MainWindow _instance = null;
-
-            public static MainWindow GetInstance()
-            {
-                _instance ??= new MainWindow();
-                return _instance;
-            }
-
-            public static void setInstance(MainWindow w)
-            {
-                _instance = w;
-            }
-        }
-
         public static class UpdateDataSingleton
         {
             private static UpdateData _instance = null;
 
-            public static UpdateData GetInstance()
+            public static UpdateData GetInstance(object sender)
             {
                 if(_instance == null)
                 {

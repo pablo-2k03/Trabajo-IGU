@@ -31,19 +31,14 @@
 
         <!-- Canvas to display the graph, in the middle of the DockPanel -->
         <Canvas Name="lienzo">
-            <!-- Y-axis marks -->
-            <Line X1="40" Y1="20" X2="40" Y2="300" Stroke="Black"/>
-            <Line X1="40" Y1="20" X2="35" Y2="20" Stroke="Black"/>
-            <!-- Add more Y-axis marks as needed -->
 
             <!-- Bars and labels -->
             <ItemsControl ItemsSource="{Binding Partidos}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Margin="10">
+                        <Viewbox Margin="10">
                             <Rectangle Width="50" Height="{Binding Votos}" Fill="{Binding Color}"/>
-                            <TextBlock Text="{Binding Nombre}" Margin="5,0,0,0"/>
-                        </StackPanel>
+                        </Viewbox>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
