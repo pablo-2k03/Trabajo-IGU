@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace Pactometro
 {
@@ -14,7 +12,6 @@ namespace Pactometro
     public partial class AddData : Window
     {
         public event EventHandler<CustomEventArgs> DataAdded;
-        public delegate Partido crearPartido(object sender, CustomEventArgsAddParty p);
 
         public enum AutonomousCommunity
         {
@@ -41,24 +38,12 @@ namespace Pactometro
 
         private ComboBox electorComunidad;
         private Dictionary<string, Partido> infoPartidos = new();
-        private crearPartido _p;
         private Partido p = new();
-        private DatosGraficas c = Utils.DatosGraficasWindowSingleton.GetInstance();
         private int nEscaños=0;
         private TextBox electorEscaños;
         public AddData()
         {
             InitializeComponent();
-            _p += p.crearPartido;
-            DataAdded += c.cargarDatos;
-        }
-
-        public static void NewWindow(object sender, RoutedEventArgs e)
-        {
-            AddData a = Utils.AddDataWindowSingleton.GetInstance();
-
-            //ShowDialog en vez de Show para que se abra en modo modal.
-            a.ShowDialog();
         }
 
 
@@ -136,9 +121,6 @@ namespace Pactometro
             //Cuando den click para registrar la info del partido, el focus se lo ponemos al nombre de un nuevo partido para optimizar UX.
             nombre.Focus();
 
-
-
-
             string key = nombre.Text;
             string value = votos.Text;
             int votes;
@@ -191,9 +173,10 @@ namespace Pactometro
                     {
                         System.Drawing.Color selectedColor = colorDialog.Color;
 
-                        //Creamos un partido.
-                        CustomEventArgsAddParty ap = new(key, int.Parse(value), selectedColor); //nombre, escaños y color.
-                        var party = _p?.Invoke(this, ap);
+                        string nombre = key;
+                        int escaños = int.Parse(value);
+
+                        Partido party = p.crearPartido(nombre,escaños,selectedColor);
 
                         if (party != null)
                         {
@@ -435,6 +418,7 @@ namespace Pactometro
             registerNewParty.Content = "Añadir nuevo partido";
             registerNewParty.Foreground = System.Windows.Media.Brushes.Black;
         }
+
 
     }
 

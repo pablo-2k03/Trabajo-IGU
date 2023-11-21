@@ -30,14 +30,14 @@
 
             <!-- Columna 1 - Datos Actuales -->
             <StackPanel Grid.Column="0" Margin="70">
-                <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Vertical" Background="LightGray">
                     <Label Content="Datos Actuales" FontSize="16" FontWeight="Bold" FontStretch="Condensed"/>
                     <Label Content="Tipo de elecciones" FontSize="11" FontWeight="Bold" FontStretch="Condensed"/>
                     <TextBlock Name="elecActual" Width="690" Margin="10 10 0 10"/>
                     <Label Content="Fecha" FontSize="11" FontWeight="Bold" FontStretch="Condensed"/>
                     <TextBlock Name="fechaActual" Width="690" Margin="10 10 0 10"/>
                     <Label Content="Partidos" FontSize="11" FontWeight="Bold" FontStretch="Condensed"/>
-                    <ListBox Width="184" Height="100" HorizontalAlignment="Left" Name="partidosAct" Margin="10 10 0 10"/>
+                    <ListBox Width="184" Height="100" HorizontalAlignment="Left" Name="partidosAct" Margin="10 10 0 10" Background="LightGray"/>
                 </StackPanel>
             </StackPanel>
 

@@ -23,27 +23,20 @@ namespace Pactometro
     public partial class UpdateData : Window
     {
 
-        public event EventHandler<CustomEventArgs> DataAdded;
-        public delegate Partido crearPartido(object sender, CustomEventArgsAddParty p);
 
         private ComboBox electorComunidad;
         private Dictionary<string, Partido> infoPartidos = new();
-        private crearPartido _p;
         private Partido p = new();
         private int nEscaños = 0;
         private TextBox electorEscaños;
-        private DatosGraficas c;
+
+        private ModeloDatos modeloUnico;
+        private ModeloDatos modeloAReemplazar;
+
         public UpdateData()
         {
             InitializeComponent();
             StateChanged += changedState;
-            _p += p.crearPartido;
-        }
-
-        public void newWindow()
-        {
-            UpdateData u = Utils.UpdateDataSingleton.GetInstance();
-            u.ShowDialog();
         }
 
         public enum AutonomousCommunity
@@ -69,11 +62,15 @@ namespace Pactometro
             Murcia
         }
 
-        public void displayData(object sender, CustomEventArgs e)
+        public void displayData(object sender, CustomEventArgs e,ModeloDatos modeloUnico)
         {
             string nombre = e.tipoEleccion;
             string fecha = e.fechaElectoral;
             string comunidad = e.comunidad;
+
+            this.modeloUnico = modeloUnico;
+            this.modeloAReemplazar = e.ModeloDatosAReemplazar;
+
             Dictionary<string,Partido> partidos = e.infoPartidos;
             string tipoEleccion = "";
 
@@ -155,9 +152,12 @@ namespace Pactometro
                         }
 
                         CustomEventArgs c = new(electionType, comunity, date, Partidos, nEscaños);
-                        DataAdded?.Invoke(this, c);
+                        c.ModeloDatosAReemplazar = this.modeloAReemplazar;
+                        modeloUnico.UpdateData(this, c);
+
                         nombre.Clear();
                         votos.Clear();
+
                         registroPartidos.Items.Clear();
                         MessageBox.Show("Datos actualizados correctamente.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                         this.Close();
@@ -248,8 +248,10 @@ namespace Pactometro
                         System.Drawing.Color selectedColor = colorDialog.Color;
 
                         //Creamos un partido.
-                        CustomEventArgsAddParty ap = new(key, int.Parse(value), selectedColor); //nombre, escaños y color.
-                        var party = _p?.Invoke(this, ap);
+                        string nombre = key;
+                        int escaños = int.Parse(value);
+
+                        Partido party = p.crearPartido(nombre, escaños, selectedColor);
 
                         if (party != null)
                         {

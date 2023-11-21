@@ -18,9 +18,9 @@ namespace Pactometro
             Color = color;
         }
         public Partido() { this.Nombre = string.Empty; }
-        public Partido crearPartido(object sender,CustomEventArgsAddParty p)
+        public Partido crearPartido(string nombre,int votos,System.Drawing.Color color)
         {
-            return new Partido(p.name, p.votos, p.Color);
+            return new Partido(nombre, votos, color);
         }
     }
 }

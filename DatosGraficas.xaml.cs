@@ -15,9 +15,6 @@ namespace Pactometro
     public partial class DatosGraficas : Window
     {
 
-        //Añadimos el delegado que gestiona el cambio de ventana.
-        public delegate void delegadoCambioV(object sender, RoutedEventArgs a);
-
         //Manejadora del evento y evento para gestionar cuando unos datos han sido seleccionados.
         public delegate void DataSelectedEventHandler(object sender, CustomEventArgsMain e); 
         public event DataSelectedEventHandler DataSelected; 
@@ -30,80 +27,43 @@ namespace Pactometro
         public delegate void DatosGraficasClosedEventHandler(object sender, EventArgs e);
         public event DatosGraficasClosedEventHandler DatosGraficasClosed;
 
-        //Delegado encargado de cargar los datos de prueba iniciales.
-        public delegate void cargaDatos();
 
-        //Delegado encargado de registrar nuevos datos introducidos desde AddData por el usuario.
-        public delegate void createNewData(object s, CustomEventArgs c);
-
-        //Delegado encargado de actualizar los datos introducidos por teclado desde UpdateData.
-        public delegate void updateData(object sender, CustomEventArgs e);
-
-        private delegadoCambioV _v;
-
-
-        //Delegado encargado de cargar datos automaticamente.
-        private cargaDatos _delegadoCargaDatos;
-
-        //Delegados encargados de añadir datos del usuario (AddData.xaml.cs ) y de modificarlos (UpdateData.xaml.cs)
-        private createNewData _addData;
-        private createNewData _actualizarDatos;
-
-        //Delegado encargado de mostrar en la nueva ventana nada mas lanzarse los datos necesarios para que el usuario sepa cual son los actuales.
-        private updateData _updateData;
-        
-
-        //Instancias de los modelos que nos van a servir para añadir a los eventos y delegados los gestores.
-        private ModeloDatos md;
-        private UpdateData upd;
+        //Instancia del modelo unico que será el almacen de datos.
+        private ModeloDatos modeloUnico;
 
         //Modelo de datos a reemplazar cuando este seleccionado
-        private ModeloDatos m;
+        private ModeloDatos modeloAReemplazar;
         
         public DatosGraficas()
         {
             InitializeComponent();
-            
-            //Instancias de las clases.
-            md = Utils.DataModelSingleton.GetInstance();
-            upd = Utils.UpdateDataSingleton.GetInstance();
+            //Generar instancia unica del modelo.
+            modeloUnico = Utils.DataModelSingleton.GetInstance();
 
             //Eventos de la propia ventana
             Closing += DatosGraficas_Closing;
 
-            //Delegados y manejadoras.
-            _v += AddData.NewWindow;
-            _delegadoCargaDatos += md.LoadDataTests;
-            _addData += md.CreateNewData;
-            _updateData = upd.displayData;
-            upd.Closing  += UpdateData_Closing;
-            upd.DataAdded += actualizarDatos;
-            _actualizarDatos += md.UpdateData;
-        }
-
-        public void NewWindow(object sender, RoutedEventArgs e)
-        {
-            DatosGraficas c = Utils.DatosGraficasWindowSingleton.GetInstance();
-            c.Show();
         }
 
         //Cargar ventana de añadir datos.
         private void AddElectionData(object sender, RoutedEventArgs e)
         {
 
-            _v?.Invoke(sender, e);
+            AddData add = Utils.AddDataWindowSingleton.GetInstance(this);
+            add.DataAdded += cargarDatos;
+            add.ShowDialog();
             
         }
 
         //Cargar datos de prueba.
         private void LoadDataTests(object sender, RoutedEventArgs e)
         {
-            _delegadoCargaDatos?.Invoke();
-            if(md.ResultadosElectorales == null)
+            modeloUnico.LoadDataTests();
+            if(modeloUnico.ResultadosElectorales == null)
             {
                 return;
             }
-            resultadosLV.ItemsSource = md.ResultadosElectorales;    
+            resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;    
         }
 
 
@@ -125,16 +85,17 @@ namespace Pactometro
                     modifyMenuItem.Header = "Modificar datos electorales";
                     modifyMenuItem.Click += (modifySender, modifyEventArgs) =>
                     {
-                        this.m = (ModeloDatos)resultadosLV.SelectedItem;
-                        CustomEventArgs c = new(this.m.Nombre, "", this.m.FechaElecciones, this.m.Partidos);
-                        upd = Utils.UpdateDataSingleton.GetInstance();
 
-                        //Le asignamos el método displayData.
-                        _updateData += upd.displayData;
-                        upd.DataAdded += actualizarDatos;
+                        this.modeloAReemplazar = (ModeloDatos)resultadosLV.SelectedItem;
 
-                        _updateData?.Invoke(this, c);
-                        upd.newWindow();
+                        CustomEventArgs c = new(this.modeloAReemplazar.Nombre, "", this.modeloAReemplazar.FechaElecciones, this.modeloAReemplazar.Partidos);
+
+                        //Añadimos a la coleccion observable de nuestro modelo  la información que nos han pasado por AddData.
+                        c.ModeloDatosAReemplazar = this.modeloAReemplazar;
+
+                        UpdateData upd = Utils.UpdateDataSingleton.GetInstance(this);
+                        upd.displayData(this, c,modeloUnico);
+                        upd.ShowDialog();
                         
                         
                     };
@@ -146,13 +107,12 @@ namespace Pactometro
                     deleteMenuItem.Header = "Eliminar datos electorales";
                     deleteMenuItem.Click += (deleteSender, deleteEventArgs) =>
                     {
-                        md.ResultadosElectorales.Remove((ModeloDatos)resultadosLV.SelectedItem);
-                        resultadosLV.Items.Refresh();
+                        modeloUnico.ResultadosElectorales.Remove((ModeloDatos)resultadosLV.SelectedItem);
 
                         //La tabla de partidos se vacia.
                         resultadosLV2.ItemsSource = null;
-                        resultadosLV2.Items.Refresh();
 
+                        //Lanzamos el evento removeData para que la MainWindow limpie el lienzo.
                         removeData(this,null);
                     };
 
@@ -163,11 +123,11 @@ namespace Pactometro
                     // Añadimos el contexto a la propiedad listview.Context de los resultados.
                     resultadosLV.ContextMenu = contextMenu;
                 }
-                var selectedElection = (ModeloDatos)resultadosLV.SelectedItem;
+                ModeloDatos selectedElection = (ModeloDatos)resultadosLV.SelectedItem;
 
                 Dictionary<string, Partido> partyData = selectedElection.Partidos;
 
-                // Gracias al metodo Select de los diccionarios podemos crear una nueva estructura de datos de forma muy sencilla.
+                // Gracias al metodo Select de los diccionarios podemos realizar un mapeo de los datos de forma muy sencilla.
                 // Lo bindeamos con el xaml y asociamos el Key con el nombre del partido y el Value con los escaños generando una lista.
                 var partyDataCollection = partyData.Select(pair => new { Key = pair.Key, Value = pair.Value.Votos }).ToList();
 
@@ -183,37 +143,25 @@ namespace Pactometro
         public void cargarDatos(object? sender, CustomEventArgs c)
         {
 
-            //Añadimos a la coleccion observable de nuestro modelo  la información que nos han pasado por AddData.
-            _addData?.Invoke(this, c);
+            modeloUnico.CreateNewData(this, c);
             
-            resultadosLV.ItemsSource = md.ResultadosElectorales;
+            resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;
 
         }
         //Evento para controlar cuando se está cerrando la ventana secundaria.
         private void DatosGraficas_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             DatosGraficasClosed?.Invoke(this, EventArgs.Empty);
-            md.ResultadosElectorales?.Clear();
-        }
 
-        private void UpdateData_Closing(object? sender,EventArgs e){
-
-            // Cuando la ventana de actualizar datos se cierre, eliminamos el delegado para que no haya problemas
-            // de referencia a una instancia nula.
-
-            _updateData -= upd.displayData;
-            upd.DataAdded -= actualizarDatos;
-
+            modeloUnico.ResultadosElectorales.Clear();
         }
 
         public void actualizarDatos(object? sender, CustomEventArgs c)
         {
 
-            //Añadimos a la coleccion observable de nuestro modelo  la información que nos han pasado por AddData.
-            c.ModeloDatosAReemplazar = this.m;
-            _actualizarDatos?.Invoke(this, c);
+            modeloUnico.UpdateData(this, c);
 
-            resultadosLV.ItemsSource = md.ResultadosElectorales;
+            resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;
             
 
         }

@@ -13,12 +13,11 @@ namespace Pactometro
     public partial class MainWindow : Window
     {
 
-        //Delegado encargado de gestionar cambios de ventana.
-        public delegate void delegadoCambioV(object sender, RoutedEventArgs a);
 
-        private delegadoCambioV _v;
         private Dictionary<string, Partido> bufPartidos;
         private DatosGraficas c;
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -26,16 +25,12 @@ namespace Pactometro
             //Cuando el tamaño de la ventana cambie, el canvas se va a reescalar.
             SizeChanged += MainWindow_SizeChanged;
             c = Utils.DatosGraficasWindowSingleton.GetInstance();
-            _v += c.NewWindow;
             c.DataSelected += OnDataSelected;
             c.DatosGraficasClosed += OnCloseDatosGraficas;
-            c.removeData += removeData;
+            c.removeData += OnDataRemoved;
 
             //Cuando la ventana principal se cierre todas las demas se tienen que cerrar
             Closing += MainWindow_Closing;
-
-            //Cuando la ventana principal se cargue, establecemos la instancia del singleton para evitarnos problemas.
-            Loaded += setInstance;
 
             StateChanged += stateChanged;
         }
@@ -48,10 +43,10 @@ namespace Pactometro
                 c = Utils.DatosGraficasWindowSingleton.GetInstance();
                 c.DataSelected += OnDataSelected;
                 c.DatosGraficasClosed += OnCloseDatosGraficas;
-                c.removeData += removeData;
+                c.removeData += OnDataRemoved;
             }
 
-            _v?.Invoke(sender, e);
+            c.Show();
         }
 
         public void OnDataSelected(object sender, CustomEventArgsMain e)
@@ -230,7 +225,7 @@ namespace Pactometro
             limpiaLienzo();
             c.DataSelected -= OnDataSelected;
             c.DatosGraficasClosed -= OnCloseDatosGraficas;
-            c.removeData -= removeData;
+            c.removeData -= OnDataRemoved;
             c = null;
         }
 
@@ -241,13 +236,7 @@ namespace Pactometro
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             // Cerramos todas las ventanas que estén abiertas.
-            foreach (Window window in Application.Current.Windows)
-            {
-                if (window != this)
-                {
-                    window.Close();
-                }
-            }
+            Application.Current.Shutdown();
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -284,12 +273,7 @@ namespace Pactometro
             }
         }
 
-        private void setInstance(object sender,RoutedEventArgs e)
-        {
-            Utils.MainWindowSingleton.setInstance(this);
-        }
-
-        public void removeData(object sender,EventArgs? e)
+        public void OnDataRemoved(object sender,EventArgs? e)
         {
             limpiaLienzo();
         }
