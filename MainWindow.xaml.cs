@@ -27,12 +27,12 @@ namespace Pactometro
             c = Utils.DatosGraficasWindowSingleton.GetInstance();
             c.DataSelected += OnDataSelected;
             c.DatosGraficasClosed += OnCloseDatosGraficas;
+            c.CompararElecciones += OnDataSelectedToCompare;
             c.removeData += OnDataRemoved;
 
             //Cuando la ventana principal se cierre todas las demas se tienen que cerrar
             Closing += MainWindow_Closing;
 
-            StateChanged += stateChanged;
         }
 
 
@@ -43,13 +43,14 @@ namespace Pactometro
                 c = Utils.DatosGraficasWindowSingleton.GetInstance();
                 c.DataSelected += OnDataSelected;
                 c.DatosGraficasClosed += OnCloseDatosGraficas;
+                c.CompararElecciones += OnDataSelectedToCompare;
                 c.removeData += OnDataRemoved;
             }
 
             c.Show();
         }
 
-        public void OnDataSelected(object sender, CustomEventArgsMain e)
+        public void OnDataSelected(object? sender, CustomEventArgsMain e)
         {
 
             //Limpiamos el lienzo por si habia datos.
@@ -96,10 +97,10 @@ namespace Pactometro
 
         private void GraphBarras(Dictionary<String, Partido> infoPartidos,Boolean isMax=false)
         {
-            double maxHeight = lienzo.ActualHeight; // Maximum height of bars (adjust as needed)
-            double barWidth = 20; // Width of each bar
-            double xPos = 20; // X-coordinate to start drawing bars
-            int maxVotes = infoPartidos.Values.Max(partido => partido.Votos); // Maximum number of votes
+            double maxHeight = lienzo.ActualHeight - 40; // La altura maxima de las barras es la del lienzo - el margen que le dejamos al nombre.
+            double barWidth = 20; // Ancho de las barras
+            double xPos = 20; // Posición inicial de la X
+            int maxVotes = infoPartidos.Values.Max(partido => partido.Votos); // Numero maximo de votos en una eleccion.
 
             if(isMax)
             {
@@ -115,6 +116,11 @@ namespace Pactometro
             foreach (var p in infoPartidos)
             {
                 double barHeight = (p.Value.Votos / (double)maxVotes) * maxHeight;
+
+                if(barHeight > maxHeight)
+                {
+                    barHeight = maxHeight;
+                }
 
                 Partido partido = p.Value;
 
@@ -147,7 +153,7 @@ namespace Pactometro
 
                 // Position the bar and add it to the canvas
                 Canvas.SetLeft(bar, xPos);
-                Canvas.SetBottom(bar, 0); // Align bars to the bottom of the canvas
+                Canvas.SetBottom(bar, 20); 
                 lienzo.Children.Add(bar);
 
 
@@ -179,7 +185,7 @@ namespace Pactometro
                 //Ajustamos el nombre del partido de acuerdo a su ancho y al ancho de la barra.
                 partyNameLabel.Margin = new Thickness(xPos + (barWidth / 2) - (textWidth / 2), 0, 0, 0);
 
-                Canvas.SetBottom(partyNameLabel, -20);
+                Canvas.SetBottom(partyNameLabel, 0);
                 lienzo.Children.Add(partyNameLabel);
 
                 //Añadimos espaciado entre barras.
@@ -211,7 +217,7 @@ namespace Pactometro
             };
         }
 
-        public void OnCloseDatosGraficas(object sender, EventArgs e)
+        public void OnCloseDatosGraficas(object? sender, EventArgs e)
         {
             /*
              * 
@@ -226,13 +232,10 @@ namespace Pactometro
             c.DataSelected -= OnDataSelected;
             c.DatosGraficasClosed -= OnCloseDatosGraficas;
             c.removeData -= OnDataRemoved;
+            c.CompararElecciones -= OnDataSelectedToCompare;
             c = null;
         }
 
-        private void GraphCompare(object sender, RoutedEventArgs e)
-        {
-            
-        }
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             // Cerramos todas las ventanas que estén abiertas.
@@ -241,8 +244,15 @@ namespace Pactometro
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            // Call a method to update the canvas size when the window size changes
-            UpdateCanvasSize();
+            if (WindowState == WindowState.Maximized)
+            {
+                Boolean isMaxizimed = true;
+                UpdateCanvasSize(isMaxizimed);
+            }
+            if(WindowState == WindowState.Normal)
+            {
+                UpdateCanvasSize();
+            }
         }
 
         private void UpdateCanvasSize(Boolean max=false)
@@ -260,20 +270,7 @@ namespace Pactometro
 
         }
 
-        private void stateChanged(object? sender,EventArgs e)
-        {
-            if(WindowState == WindowState.Maximized)
-            {
-                Boolean isMaxizimed = true;
-                UpdateCanvasSize(isMaxizimed);
-            }
-            else 
-            {
-                UpdateCanvasSize();
-            }
-        }
-
-        public void OnDataRemoved(object sender,EventArgs e)
+        public void OnDataRemoved(object? sender,EventArgs e)
         {
             limpiaLienzo();
         }
@@ -317,7 +314,22 @@ namespace Pactometro
             }
         }
 
+        private void compararGraficos(List<Eleccion> elecciones)
+        {
+            limpiaLienzo();
+            lienzo.Background = Brushes.Beige;
+            foreach (Eleccion e in elecciones)
+            {
+                GraphBarras(e.Partidos, false);
+            }
+        }
 
+        private void OnDataSelectedToCompare(object? sender,CustomEventArgsCompare c)
+        {
+            List<Eleccion> elecciones = c.elecciones;
+
+            compararGraficos(elecciones);
+        }
 
     }
 }

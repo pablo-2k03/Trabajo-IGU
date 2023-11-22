@@ -24,4 +24,16 @@ namespace Pactometro
     }
 
 
+    public class CustomEventArgsCompare : EventArgs
+    {
+
+        public List<Eleccion> elecciones { get; }
+
+        public CustomEventArgsCompare(List<Eleccion> elecciones)
+        {
+            this.elecciones = elecciones;
+        }
+    }
+
+
 }

@@ -26,6 +26,9 @@
                 <MenuItem Header="Añadir Datos" Name="_newData" Click="AddElectionData"/>
                 <MenuItem Header="Cargar Datos Prueba" Name="_load" Click="LoadDataTests"/>
             </MenuItem>
+            <MenuItem Header="Elecciones" Background="LightGray">
+                <MenuItem Header="Comparar Elecciones" Name="_compare" Click="_compare_Click"/>
+            </MenuItem>
         </Menu>
         <!-- Añadimos un margen (30) para que no quede pegado a los laterales y quede más bonito. -->
         <!-- Creamos también 2 ListViews para en un futuro poder seleccionar los datos de las elecciones. -->

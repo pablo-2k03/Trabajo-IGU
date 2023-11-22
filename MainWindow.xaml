@@ -22,7 +22,7 @@
             </MenuItem>
             <MenuItem Header="Gráficos">
                 <MenuItem Header="Barras" Name="_Barras"/>
-                <MenuItem Header="Comparativo" Name="_comparativo" Click="GraphCompare"/>
+                <MenuItem Header="Comparativo" Name="_comparativo" />
             </MenuItem>
         </Menu>
 

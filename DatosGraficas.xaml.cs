@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
 using System;
+using System.Drawing;
 
 namespace Pactometro
 {
@@ -24,17 +25,20 @@ namespace Pactometro
         //Manejadora del evento y evento para gestionar cuando esta ventana ha sido cerrada.
         public event EventHandler<EventArgs> DatosGraficasClosed;
 
+        public event EventHandler<CustomEventArgsCompare> CompararElecciones;
 
         //Instancia del modelo unico que será el almacen de datos.
         private ModeloDatos modeloUnico;
 
-        
+
+        private List<Eleccion> eleccionesACoomparar;
+
         public DatosGraficas()
         {
             InitializeComponent();
             //Generar instancia unica del modelo.
             modeloUnico = Utils.DataModelSingleton.GetInstance();
-
+            eleccionesACoomparar = new List<Eleccion>();
             //Eventos de la propia ventana
             Closing += DatosGraficas_Closing;
 
@@ -104,9 +108,51 @@ namespace Pactometro
                         removeData(this,e);
                     };
 
+
+                    //Vamos a crear otro MenuItem para comparar
+                    MenuItem compare = new MenuItem();
+                    compare.Header = "Comparar";
+                    compare.Click += (compareSender, compareEventArgs) =>
+                    {
+                        Eleccion eleccionAComparar = (Eleccion)resultadosLV.SelectedItem;
+                        eleccionesACoomparar.Add(eleccionAComparar);
+
+                        // Cambiarmos el color de fondo solo si se hace clic en "Comparar" en el ContextMenu
+                        if (compareEventArgs.OriginalSource is MenuItem)
+                        {
+                            ListViewItem? selectedItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(resultadosLV.SelectedItem) as ListViewItem;
+
+                            if (selectedItem != null)
+                            {
+                                selectedItem.Background = System.Windows.Media.Brushes.LightGreen; 
+                            }
+                        }
+
+                        // Obtener la subcadena "generales" o "autonomicas" del nombre de la elección
+                        string eleccion = GetTipoEleccion(eleccionAComparar.Nombre);
+
+
+                        foreach(Eleccion item in resultadosLV.Items)
+                        {
+                            if (GetTipoEleccion(item.Nombre) != eleccion)
+                            {
+                                // Deshabilitar el elemento y ponerlo en gris
+                                ListViewItem? listViewItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
+
+                                if (listViewItem != null)
+                                {
+                                    listViewItem.IsEnabled = false;
+                                    listViewItem.Background = System.Windows.Media.Brushes.LightGray;
+                                }
+                            }
+                        }
+
+                    };
+
                     // Añadimos los items del menu al contexto del menu.
                     contextMenu.Items.Add(modifyMenuItem);
                     contextMenu.Items.Add(deleteMenuItem);
+                    contextMenu.Items.Add(compare);
 
                     // Añadimos el contexto a la propiedad listview.Context de los resultados.
                     resultadosLV.ContextMenu = contextMenu;
@@ -141,6 +187,50 @@ namespace Pactometro
             resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;
         }
 
+        private void RestoreBackgroundColors(ListView listView)
+        {
+            // Restaurar los colores de fondo de todos los elementos en el ListView
+            foreach (var item in listView.Items)
+            {
+                ListViewItem? listViewItem = listView.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
+                if (listViewItem != null)
+                {
+                    listViewItem.Background = System.Windows.Media.Brushes.Transparent;
+                    listViewItem.IsEnabled = true;
+                }
+            }
+        }
+
+        private string GetTipoEleccion(string nombreEleccion)
+        {
+            if (nombreEleccion.ToLower().Contains("generales"))
+            {
+                return "generales";
+            }
+            else if (nombreEleccion.ToLower().Contains("autonomicas"))
+            {
+                return "autonomicas";
+            }
+            else
+            {
+                // Puedes agregar más lógica para otros tipos de elecciones según sea necesario
+                return "otro";
+            }
+        }
+
+        private void _compare_Click(object sender, RoutedEventArgs e)
+        {
+            if(eleccionesACoomparar.Count < 2)
+            {
+                MessageBox.Show("Seleccione al menos dos elecciones para comparar.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
+            {
+                CustomEventArgsCompare cec = new(this.eleccionesACoomparar);
+                CompararElecciones(this,cec);
+                RestoreBackgroundColors(resultadosLV);
+            }
+        }
     }
         
 }
