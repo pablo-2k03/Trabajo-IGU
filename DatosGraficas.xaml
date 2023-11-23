@@ -28,6 +28,7 @@
             </MenuItem>
             <MenuItem Header="Elecciones" Background="LightGray">
                 <MenuItem Header="Comparar Elecciones" Name="_compare" Click="_compare_Click"/>
+                <MenuItem Header="Eliminar selección" Name="_deleteSelection" Click="_deleteSelection_Click"/>
             </MenuItem>
         </Menu>
         <!-- Añadimos un margen (30) para que no quede pegado a los laterales y quede más bonito. -->

@@ -95,11 +95,10 @@ namespace Pactometro
             
         }
 
-        private void GraphBarras(Dictionary<String, Partido> infoPartidos,Boolean isMax=false)
+        private void GraphBarras(Dictionary<String, Partido> infoPartidos,Boolean isMax=false,double xPos=20)
         {
             double maxHeight = lienzo.ActualHeight - 40; // La altura maxima de las barras es la del lienzo - el margen que le dejamos al nombre.
             double barWidth = 20; // Ancho de las barras
-            double xPos = 20; // Posición inicial de la X
             int maxVotes = infoPartidos.Values.Max(partido => partido.Votos); // Numero maximo de votos en una eleccion.
 
             if(isMax)
@@ -249,7 +248,7 @@ namespace Pactometro
                 Boolean isMaxizimed = true;
                 UpdateCanvasSize(isMaxizimed);
             }
-            if(WindowState == WindowState.Normal)
+            else
             {
                 UpdateCanvasSize();
             }
@@ -259,7 +258,6 @@ namespace Pactometro
         {
             double margin = 80;
             lienzo.Width = ActualWidth - 2 * margin;
-            lienzo.Height = ActualHeight - 2 * margin;
             lienzo.Children.Clear();
             if(bufPartidos != null)
             {
@@ -316,11 +314,23 @@ namespace Pactometro
 
         private void compararGraficos(List<Eleccion> elecciones)
         {
+            this.bufPartidos?.Clear();
+            int tieneTitulo = 0;
+
             limpiaLienzo();
             lienzo.Background = Brushes.Beige;
+
+            double xPosInicial = 20;
+
             foreach (Eleccion e in elecciones)
             {
-                GraphBarras(e.Partidos, false);
+                if(tieneTitulo == 0)
+                {
+                    tituloGrafica.Text = e.Nombre;
+                    tieneTitulo = 1;
+                }
+                GraphBarras(e.Partidos, false,xPosInicial);
+                xPosInicial += 20;
             }
         }
 

@@ -65,8 +65,13 @@ namespace Pactometro
 
                         Dictionary<String, Partido> partidos = new();
 
+                        
                         foreach (var v in partidosInfo)
-                            partidos.Add(v.Key, new Partido(v.Key,v.Value,default));
+                        {
+                            
+
+                            partidos.Add(v.Key, new Partido(v.Key, v.Value, getRandomColor()));
+                        }
 
                         //Creamos una clase de datos y la guardamos a la coleccion.
 
@@ -125,7 +130,7 @@ namespace Pactometro
             {
                 Dictionary<String, Partido> partidos = new();
                 foreach (var v in partidosInfo)
-                    partidos.Add(v.Key, new Partido(v.Key, v.Value, default));
+                    partidos.Add(v.Key, new Partido(v.Key, v.Value, getRandomColor()));
 
                 Eleccion resultados = new(tipoElecciones.ToString(), fechaElecciones, partidos, nombre);
                 ResultadosElectorales.Add(resultados);
@@ -201,6 +206,19 @@ namespace Pactometro
             CultureInfo cultureInfo = new("es-ES");
             TextInfo textInfo = cultureInfo.TextInfo;
             return textInfo.ToTitleCase(input);
+        }
+
+
+        private Color getRandomColor()
+        {
+            Random random = new Random();
+
+            byte red = (byte)random.Next(256);
+            byte green = (byte)random.Next(256);
+            byte blue = (byte)random.Next(256);
+
+            return Color.FromArgb(255, red, green, blue);
+
         }
     }
 }
