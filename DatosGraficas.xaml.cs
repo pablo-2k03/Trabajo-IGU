@@ -29,8 +29,6 @@ namespace Pactometro
 
         //Instancia del modelo unico que será el almacen de datos.
         private ModeloDatos modeloUnico;
-
-
         private List<Eleccion> eleccionesACoomparar;
 
         public DatosGraficas()
@@ -114,6 +112,9 @@ namespace Pactometro
                     compare.Header = "Comparar";
                     compare.Click += (compareSender, compareEventArgs) =>
                     {
+                        //Si se selecciona para comparar, no se pueden añadir datos.
+                        _newData.IsEnabled = false;
+
                         Eleccion eleccionAComparar = (Eleccion)resultadosLV.SelectedItem;
                         eleccionesACoomparar.Add(eleccionAComparar);
 
@@ -127,22 +128,44 @@ namespace Pactometro
                                 selectedItem.Background = System.Windows.Media.Brushes.LightGreen; 
                             }
                         }
-
                         // Obtener la subcadena "generales" o "autonomicas" del nombre de la elección
-                        string eleccion = GetTipoEleccion(eleccionAComparar.Nombre);
+                        string tipoEleccionElegida = GetTipoEleccion(eleccionAComparar.Nombre);
+                        string comunidadElegida = string.Empty;
+                        Boolean sonAutonomicas = false;
 
-
-                        foreach(Eleccion item in resultadosLV.Items)
+                        if (tipoEleccionElegida.Contains("autonomicas"))
                         {
-                            if (GetTipoEleccion(item.Nombre) != eleccion)
+                            comunidadElegida = GetComunidad(eleccionAComparar.Nombre);
+                            sonAutonomicas = true;
+                        }
+                        foreach (Eleccion item in resultadosLV.Items)
+                        {
+                            if (sonAutonomicas)
                             {
-                                // Deshabilitar el elemento y ponerlo en gris
-                                ListViewItem? listViewItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
-
-                                if (listViewItem != null)
+                                if (GetComunidad(item.Nombre) != comunidadElegida)
                                 {
-                                    listViewItem.IsEnabled = false;
-                                    listViewItem.Background = System.Windows.Media.Brushes.LightGray;
+                                    // Deshabilitar el elemento y ponerlo en gris
+                                    ListViewItem? listViewItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
+
+                                    if (listViewItem != null)
+                                    {
+                                        listViewItem.IsEnabled = false;
+                                        listViewItem.Background = System.Windows.Media.Brushes.LightGray;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (GetTipoEleccion(item.Nombre) != tipoEleccionElegida)
+                                {
+                                    // Deshabilitar el elemento y ponerlo en gris
+                                    ListViewItem? listViewItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
+
+                                    if (listViewItem != null)
+                                    {
+                                        listViewItem.IsEnabled = false;
+                                        listViewItem.Background = System.Windows.Media.Brushes.LightGray;
+                                    }
                                 }
                             }
                         }
@@ -184,7 +207,7 @@ namespace Pactometro
 
         private void OnDataCreated(object? sender,EventArgs e)
         {
-            resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;
+            resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;     
         }
 
         private void RestoreBackgroundColors(ListView listView)
@@ -213,7 +236,6 @@ namespace Pactometro
             }
             else
             {
-                // Puedes agregar más lógica para otros tipos de elecciones según sea necesario
                 return "otro";
             }
         }
@@ -229,7 +251,22 @@ namespace Pactometro
                 CustomEventArgsCompare cec = new(this.eleccionesACoomparar);
                 CompararElecciones(this,cec);
                 RestoreBackgroundColors(resultadosLV);
+                _newData.IsEnabled = true;
             }
+        }
+
+
+        private string GetComunidad(string nombreEleccion)
+        {
+            string[] tokens = nombreEleccion.Split(" ");
+            return tokens[tokens.Length-2];
+        }
+
+        private void _deleteSelection_Click(object sender, RoutedEventArgs e)
+        {
+            eleccionesACoomparar?.Clear();
+            RestoreBackgroundColors(resultadosLV);
+            _newData.IsEnabled = true;
         }
     }
         
