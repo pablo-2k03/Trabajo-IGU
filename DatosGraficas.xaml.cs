@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
 using System;
-using System.Drawing;
 
 namespace Pactometro
 {
@@ -17,26 +16,30 @@ namespace Pactometro
     {
 
         //Manejadora del evento y evento para gestionar cuando unos datos han sido seleccionados.
-        public event EventHandler<CustomEventArgsMain> DataSelected; 
-
-        //Delegado encargado de eliminar los datos (el parametro eventArgs acepta valores nulos)
-        public event EventHandler<EventArgs> removeData;
+        public event EventHandler<CustomEventArgs> DataSelected; 
 
         //Manejadora del evento y evento para gestionar cuando esta ventana ha sido cerrada.
         public event EventHandler<EventArgs> DatosGraficasClosed;
 
-        public event EventHandler<CustomEventArgsCompare> CompararElecciones;
+        public event EventHandler<CustomEventArgs> CompararElecciones;
 
         //Instancia del modelo unico que será el almacen de datos.
         private ModeloDatos modeloUnico;
+
+        //Lista de elecciones que se va a pasar como parametro para graficar el comparativo.
         private List<Eleccion> eleccionesACoomparar;
 
+        //Lista de elecciones que se va a passar como parametro para graficar los datos de una eleccion.
+        private List<Eleccion> eleccionesAGraficar;
         public DatosGraficas()
         {
             InitializeComponent();
             //Generar instancia unica del modelo.
             modeloUnico = Utils.DataModelSingleton.GetInstance();
             eleccionesACoomparar = new List<Eleccion>();
+            eleccionesAGraficar = new List<Eleccion>();
+            resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;
+
             //Eventos de la propia ventana
             Closing += DatosGraficas_Closing;
 
@@ -55,9 +58,8 @@ namespace Pactometro
         //Cargar datos de prueba.
         private void LoadDataTests(object sender, RoutedEventArgs e)
         {
-            modeloUnico.LoadDataTests();
 
-            resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;    
+            modeloUnico.LoadDataTests();
         }
 
 
@@ -87,7 +89,6 @@ namespace Pactometro
                                         eleccionAReemplazar.Partidos,eleccionAReemplazar, modeloUnico);
                         upd.ShowDialog();
                         
-                        
                     };
 
                     // Para eliminar un elemento, simplemente cogemos nuestro modelo unico y lo eliminamos de la lista de resultadosElectorales
@@ -102,8 +103,6 @@ namespace Pactometro
                         //La tabla de partidos se vacia.
                         resultadosLV2.ItemsSource = null;
 
-                        //Lanzamos el evento removeData para que la MainWindow limpie el lienzo.
-                        removeData(this,e);
                     };
 
 
@@ -112,9 +111,10 @@ namespace Pactometro
                     compare.Header = "Comparar";
                     compare.Click += (compareSender, compareEventArgs) =>
                     {
+                        
                         //Si se selecciona para comparar, no se pueden añadir datos.
                         _newData.IsEnabled = false;
-
+                        //TODO: Cambiar UX 
                         Eleccion eleccionAComparar = (Eleccion)resultadosLV.SelectedItem;
                         eleccionesACoomparar.Add(eleccionAComparar);
 
@@ -190,10 +190,11 @@ namespace Pactometro
 
                 resultadosLV2.ItemsSource = partyDataCollection;
 
+                eleccionesAGraficar.Add(selectedElection);
                 //Enviamos los datos al MainWindow para su visualizacion.
-                CustomEventArgsMain args = new(selectedElection.Partidos,selectedElection.Nombre); 
+                CustomEventArgs args = new(eleccionesAGraficar);
                 DataSelected(this, args);
-
+                eleccionesAGraficar.Clear();
             }
         }
 
@@ -202,7 +203,6 @@ namespace Pactometro
         {
             DatosGraficasClosed(this, EventArgs.Empty);
 
-            modeloUnico.ResultadosElectorales.Clear();
         }
 
         private void OnDataCreated(object? sender,EventArgs e)
@@ -248,10 +248,11 @@ namespace Pactometro
             }
             else
             {
-                CustomEventArgsCompare cec = new(this.eleccionesACoomparar);
-                CompararElecciones(this,cec);
+                CustomEventArgs c = new(this.eleccionesACoomparar);
+                CompararElecciones(this,c);
                 RestoreBackgroundColors(resultadosLV);
                 _newData.IsEnabled = true;
+                this.eleccionesACoomparar.Clear();
             }
         }
 

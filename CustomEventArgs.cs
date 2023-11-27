@@ -10,26 +10,13 @@ namespace Pactometro
     
 
 
-    public class CustomEventArgsMain : EventArgs
-    {
 
-        public Dictionary<String, Partido> infoPartidos { get; }
-        public string name { get; }
-
-        public CustomEventArgsMain(Dictionary<string, Partido> infoPartidos, string name)
-        {
-            this.infoPartidos = infoPartidos;
-            this.name = name;
-        }
-    }
-
-
-    public class CustomEventArgsCompare : EventArgs
+    public class CustomEventArgs : EventArgs
     {
 
         public List<Eleccion> elecciones { get; }
 
-        public CustomEventArgsCompare(List<Eleccion> elecciones)
+        public CustomEventArgs(List<Eleccion> elecciones)
         {
             this.elecciones = elecciones;
         }

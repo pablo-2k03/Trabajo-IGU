@@ -24,7 +24,7 @@
         <Menu Background="White">
             <MenuItem Header="Opciones" Background="LightGray">
                 <MenuItem Header="Añadir Datos" Name="_newData" Click="AddElectionData"/>
-                <MenuItem Header="Cargar Datos Prueba" Name="_load" Click="LoadDataTests"/>
+                <MenuItem Header="Reestablecer Datos Prueba" Name="_load" Click="LoadDataTests"/>
             </MenuItem>
             <MenuItem Header="Elecciones" Background="LightGray">
                 <MenuItem Header="Comparar Elecciones" Name="_compare" Click="_compare_Click"/>
@@ -34,7 +34,7 @@
         <!-- Añadimos un margen (30) para que no quede pegado a los laterales y quede más bonito. -->
         <!-- Creamos también 2 ListViews para en un futuro poder seleccionar los datos de las elecciones. -->
         <!-- El primero va a contener los datos generales de las elecciones, y el segundo los datos de los votos de cada partido. -->
-        <ListView Grid.Row="0" Margin="30" x:Name="resultadosLV" MouseDoubleClick="ResultadosLV_MouseDoubleClick" ItemsSource="{Binding ResultadosElectorales}">
+        <ListView SelectionMode="Single" Grid.Row="0" Margin="30" x:Name="resultadosLV" MouseDoubleClick="ResultadosLV_MouseDoubleClick" ItemsSource="{Binding ResultadosElectorales}">
             <ListView.View>
                 <!-- Para visualizar los datos correctamente, vamos a añadir un GridView para establecer las columnas con los datos de la lista (C#). -->
                 <GridView x:Name="datosGenerales">

@@ -30,19 +30,9 @@
         <TextBlock Name="tituloGrafica" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,0,0" FontSize="16" FontWeight="Bold" DockPanel.Dock="Top"/>
 
         <!-- Canvas to display the graph, in the middle of the DockPanel -->
-        <Canvas Name="lienzo">
-
-            <!-- Bars and labels -->
-            <ItemsControl ItemsSource="{Binding Partidos}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Viewbox Margin="10">
-                            <Rectangle Width="50" Height="{Binding Votos}" Fill="{Binding Color}"/>
-                        </Viewbox>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </Canvas>
+        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+            <Canvas Name="lienzo"/>
+        </ScrollViewer>
     </DockPanel>
 
 

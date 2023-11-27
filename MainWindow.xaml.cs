@@ -13,25 +13,46 @@ namespace Pactometro
     public partial class MainWindow : Window
     {
 
-
-        private Dictionary<string, Partido> bufPartidos;
+        //Instancias de objetos
         private DatosGraficas c;
+        private ModeloDatos modeloUnico;
 
+        //Lista de elecciones para graficar.
+        private List<Eleccion> eleccionesAGraficar;
 
+        //Buffer para guardar las ultimas elecciones seleccionadas para comparar.
+        private List<Eleccion> eleccionesACoomparar;
+
+        //Condiciones que comprueban diferentes casos del programa.
+        private Boolean graficoComparativo = false;
+        private Boolean marcasDibujadas = false;
         public MainWindow()
         {
             InitializeComponent();
-            //Le añadimos al delegado el metodo de cambiar de ventana.
+
+            //Instanciación de variables.
+            eleccionesAGraficar = new List<Eleccion>();
+            eleccionesACoomparar = new List<Eleccion>();
+
             //Cuando el tamaño de la ventana cambie, el canvas se va a reescalar.
             SizeChanged += MainWindow_SizeChanged;
+
+            modeloUnico = Utils.DataModelSingleton.GetInstance();
+            modeloUnico.LoadDataTests();
+
+            //Instanciacion y suscripción de las manejadoras a los eventos de esta.
             c = Utils.DatosGraficasWindowSingleton.GetInstance();
             c.DataSelected += OnDataSelected;
             c.DatosGraficasClosed += OnCloseDatosGraficas;
             c.CompararElecciones += OnDataSelectedToCompare;
-            c.removeData += OnDataRemoved;
+
+            //Nos ponemos a escuchar cambios en el modelo de datos.
+            modeloUnico.ResultadosElectorales.CollectionChanged += OnCollectionChanged;
+
 
             //Cuando la ventana principal se cierre todas las demas se tienen que cerrar
             Closing += MainWindow_Closing;
+
 
         }
 
@@ -44,156 +65,185 @@ namespace Pactometro
                 c.DataSelected += OnDataSelected;
                 c.DatosGraficasClosed += OnCloseDatosGraficas;
                 c.CompararElecciones += OnDataSelectedToCompare;
-                c.removeData += OnDataRemoved;
             }
 
             c.Show();
         }
 
-        public void OnDataSelected(object? sender, CustomEventArgsMain e)
+        public void OnDataSelected(object? sender, CustomEventArgs e)
         {
-
+            eleccionesAGraficar.Clear();
+            this.marcasDibujadas = false;
             //Limpiamos el lienzo por si habia datos.
             lienzo.Children.Clear();
 
             //Ponemos un color beige de fondo.
             lienzo.Background = Brushes.Beige;
 
-            // Actualizar el textblock con el nombre de la elección.
-            tituloGrafica.Text = e.name;
-
-            /*
-            name = e.name;
-
-            //Guardamos en un array de elecciones los datos de los partidos que participan en ellas.
-            for (int i = 0; i < this.elecciones.Length; i++)
+            foreach(var i in e.elecciones)
             {
-                if (this.elecciones[i] == null)
-                {
-                    Dictionary<string,Partido> keyValuePairs = new Dictionary<string,Partido>();
-                    foreach(var keyValue in bufPartidos)
-                    {
-                        keyValuePairs.Add(keyValue.Key,keyValue.Value);
-                    }
-                    this.elecciones[i] = keyValuePairs;
-                    break;
-                }
-                
+                eleccionesAGraficar.Add(i);
             }
-            */
-
-            //Guardamos en el buffer el ultimo dato seleccionado.
-            
-            bufPartidos = new Dictionary<string, Partido>();
-            foreach (var partido in e.infoPartidos)
-            {
-                bufPartidos.Add(partido.Key, partido.Value);
-            }
-            
-            //Graficamos.
-            GraphBarras(e.infoPartidos);
+            tituloGrafica.Text = e.elecciones[0].Nombre;
+            //Graficamos.       
+            GraphBarras(e.elecciones);
             
         }
 
-        private void GraphBarras(Dictionary<String, Partido> infoPartidos,Boolean isMax=false,double xPos=20)
+        private void GraphBarras(List<Eleccion> eleccionesSeleccionadas,Boolean isMax=false)
         {
             double maxHeight = lienzo.ActualHeight - 40; // La altura maxima de las barras es la del lienzo - el margen que le dejamos al nombre.
             double barWidth = 20; // Ancho de las barras
-            int maxVotes = infoPartidos.Values.Max(partido => partido.Votos); // Numero maximo de votos en una eleccion.
-
-            if(isMax)
+            double maxBarWidth = 20 * eleccionesSeleccionadas.Count;
+            double xPos = 20;
+            double espacioEntreBarras = 0;
+            Dictionary<string,Partido> nombresElectorales = new Dictionary<string, Partido>();
+            Dictionary<string,double> posiciones = new Dictionary<string,double>();
+            Boolean tieneMasElecciones = false;
+            int i = 0;
+ 
+            foreach (var eleccion in eleccionesSeleccionadas)
             {
-
-                dibujarMarcas(maxVotes, maxHeight,5);
-            }
-            else
-            {
-                dibujarMarcas(maxVotes, maxHeight, 20);
-            }
-
-
-            foreach (var p in infoPartidos)
-            {
-                double barHeight = (p.Value.Votos / (double)maxVotes) * maxHeight;
-
-                if(barHeight > maxHeight)
+                if (!tieneMasElecciones)
                 {
-                    barHeight = maxHeight;
+                    espacioEntreBarras = (lienzo.ActualWidth - barWidth) / eleccion.Partidos.Count - 1;
                 }
 
-                Partido partido = p.Value;
+                int maxVotes = eleccion.Partidos.Values.Max(partido => partido.Votos);
+                Dictionary<String, Partido> partidos = new Dictionary<String, Partido>();
+                partidos = eleccion.Partidos;
+                
 
-                Color partidoColor;
-
-                //Comprobamos si la propiedad Color del partido tiene asignado algo o es nulo, si lo tiene se lo asignamos y sino dejamos el azul por defecto.
-
-                if (partido.Color.ToString() != "Color [Empty]")
+                if (isMax)
                 {
-                    partidoColor = System.Windows.Media.Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B);
+                    if (!this.marcasDibujadas)
+                    {
+                        dibujarMarcas(maxVotes, maxHeight, 5);
+                        this.marcasDibujadas = true;
+                    }
                 }
                 else
                 {
-                    partidoColor = System.Windows.Media.Colors.Blue;
+                    if (!this.marcasDibujadas)
+                    {
+                        dibujarMarcas(maxVotes, maxHeight, 20);
+                        this.marcasDibujadas = true;
+                    }
                 }
 
-                Rectangle bar = new Rectangle
+
+                foreach (var p in partidos)
                 {
-                    Width = barWidth,
-                    Height = barHeight,
-                    Fill = new SolidColorBrush(partidoColor)
-                };
 
-                // Añadimos un toolTip para ver el numero de votos que tiene un partido cuando el raton pasa por encima.
-                bar.ToolTip = new ToolTip { Content = $"{p.Value.Votos} votos" };
+                    double barHeight = (p.Value.Votos / (double)maxVotes) * maxHeight;
+                    Partido partido = p.Value;
 
-                //Añadimos el evento al gestor del primer elemento que pasemos como parametro.
-                AddEventHandler(bar, bar);
+                    Color partidoColor;
+
+                    //Comprobamos si la propiedad Color del partido tiene asignado algo o es nulo, si lo tiene se lo asignamos y sino dejamos el azul por defecto.
+
+                    if (partido.Color.ToString() != "Color [Empty]")
+                    {
+                        partidoColor = System.Windows.Media.Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B);
+                    }
+
+                    if(nombresElectorales.ContainsKey(p.Value.Nombre))
+                    {
+                        Partido p1 = nombresElectorales[p.Value.Nombre];
+                        partidoColor = System.Windows.Media.Color.FromArgb(p1.Color.A, p1.Color.R, p1.Color.G, p1.Color.B);
+
+                        if (posiciones.ContainsKey(p.Value.Nombre))
+                        {
+                            xPos = posiciones[p.Value.Nombre]+barWidth;
+                            if(i > 1)
+                            {
+                                xPos = posiciones[p.Value.Nombre] + 2*barWidth;
+                            }
+                        }
+                        else
+                        {
+                            xPos = 2*espacioEntreBarras+barWidth;
+                        }
+                    }
+
+                    Rectangle bar = new Rectangle
+                    {
+                        Width = barWidth,
+                        Height = barHeight,
+                        Fill = new SolidColorBrush(partidoColor)
+                    };
+
+                    if(tieneMasElecciones)
+                    {
+
+                        if (nombresElectorales.ContainsKey(p.Value.Nombre))
+                        {
+                            bar.Opacity = 0.5;
+                        }
+                    }
+
+                    // Añadimos un toolTip para ver el numero de votos que tiene un partido cuando el raton pasa por encima.
+                    bar.ToolTip = new ToolTip { Content = $"{p.Value.Votos} escaños" };
+
+                    //Añadimos el evento al gestor del primer elemento que pasemos como parametro.
+                    AddEventHandler(bar, bar,p.Value,eleccion);
+                    // Position the bar and add it to the canvas
+                    Canvas.SetLeft(bar, xPos);
+                    Canvas.SetBottom(bar, 20);
+                    lienzo.Children.Add(bar);
 
 
-                // Position the bar and add it to the canvas
-                Canvas.SetLeft(bar, xPos);
-                Canvas.SetBottom(bar, 20); 
-                lienzo.Children.Add(bar);
 
+                    // Añadimos el nombre del partido en la parte inferior.
+                    TextBlock partyNameLabel = new TextBlock
+                    {
+                        Text = p.Key,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Top
+                    };
 
+                    //También se lo añadimos al nombre, por si se da el caso de que la barra sea tan pequeña q casi ni se vea.
+                    AddEventHandler(partyNameLabel, bar,p.Value,eleccion);
 
-                // Añadimos el nombre del partido en la parte inferior.
-                TextBlock partyNameLabel = new TextBlock
+                    //Calculamos el ancho del texto utilizando la clase FormattedText.
+                    FormattedText formattedText = new FormattedText(
+                        p.Key,
+                        CultureInfo.CurrentCulture,
+                        FlowDirection.LeftToRight,
+                        new Typeface(partyNameLabel.FontFamily, partyNameLabel.FontStyle, partyNameLabel.FontWeight, partyNameLabel.FontStretch),
+                        partyNameLabel.FontSize,
+                        Brushes.Black,
+                        new NumberSubstitution(),
+                        1);
+
+                    double textWidth = formattedText.Width;
+
+                    //Ajustamos el nombre del partido de acuerdo a su ancho y al ancho de la barra.
+                    partyNameLabel.Margin = new Thickness(xPos + (barWidth / 2) - (textWidth / 2), 0, 0, 0);
+
+                    //En caso de que nos hayamos dejado el nombre de algún partido, lo ponemos.
+                    if (!nombresElectorales.ContainsKey(partyNameLabel.Text))
+                    {
+                        Canvas.SetBottom(partyNameLabel, 0);
+                        lienzo.Children.Add(partyNameLabel);
+                        nombresElectorales.Add(p.Value.Nombre,p.Value);
+                        posiciones.Add(p.Value.Nombre, xPos);
+                    }
+
+                    //Añadimos espaciado entre barras.
+                    xPos += espacioEntreBarras;
+                    if(tieneMasElecciones) { xPos+= i*barWidth-20; }
+                }
+                if (graficoComparativo)
                 {
-                    Text = p.Key,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Top
-                };
-
-                //También se lo añadimos al nombre, por si se da el caso de que la barra sea tan pequeña q casi ni se vea.
-                AddEventHandler(partyNameLabel, bar);
-
-                //Calculamos el ancho del texto utilizando la clase FormattedText.
-                FormattedText formattedText = new FormattedText(
-                    p.Key,
-                    CultureInfo.CurrentCulture,
-                    FlowDirection.LeftToRight,
-                    new Typeface(partyNameLabel.FontFamily, partyNameLabel.FontStyle, partyNameLabel.FontWeight, partyNameLabel.FontStretch),
-                    partyNameLabel.FontSize,
-                    Brushes.Black,
-                    new NumberSubstitution(),
-                    1);
-
-                double textWidth = formattedText.Width;
-
-                //Ajustamos el nombre del partido de acuerdo a su ancho y al ancho de la barra.
-                partyNameLabel.Margin = new Thickness(xPos + (barWidth / 2) - (textWidth / 2), 0, 0, 0);
-
-                Canvas.SetBottom(partyNameLabel, 0);
-                lienzo.Children.Add(partyNameLabel);
-
-                //Añadimos espaciado entre barras.
-                xPos += barWidth + 32;
-
+                    xPos = 20 + barWidth;
+                    tieneMasElecciones = true;
+                    i++;
+                }
             }   
         }
 
-        private static void AddEventHandler(FrameworkElement e,Rectangle barra)
+        private void AddEventHandler(FrameworkElement e,Rectangle barra,Partido p,Eleccion el)
         {
             /*
              Manejadora asociada al doble click del raton sobre una barra o sobre el nombre,
@@ -211,6 +261,18 @@ namespace Pactometro
                         // Añadimos el color que haya seleccionado al usuario a la barra.
                         SolidColorBrush brush = new(Color.FromArgb(colorDialog.Color.A, colorDialog.Color.R, colorDialog.Color.G, colorDialog.Color.B));
                         barra.Fill = brush;
+                        int indiceEleccion = modeloUnico.ResultadosElectorales.IndexOf(el);
+
+                        //Lo actualizamos en el modelo.
+                        foreach( var i in modeloUnico.ResultadosElectorales[indiceEleccion].Partidos.Values)
+                        {
+                            if( i.Nombre == p.Nombre)
+                            {
+                                i.Color = colorDialog.Color;
+                                break;
+                            }
+                        }
+
                     }
                 }
             };
@@ -230,7 +292,6 @@ namespace Pactometro
             limpiaLienzo();
             c.DataSelected -= OnDataSelected;
             c.DatosGraficasClosed -= OnCloseDatosGraficas;
-            c.removeData -= OnDataRemoved;
             c.CompararElecciones -= OnDataSelectedToCompare;
             c = null;
         }
@@ -259,18 +320,56 @@ namespace Pactometro
             double margin = 80;
             lienzo.Width = ActualWidth - 2 * margin;
             lienzo.Children.Clear();
-            if(bufPartidos != null)
+
+
+            if (this.graficoComparativo)
             {
                 lienzo.Background = Brushes.Beige;
-                GraphBarras(bufPartidos,max);
+                this.marcasDibujadas = false;
+                GraphBarras(eleccionesACoomparar, max);
+            }
+            if(eleccionesAGraficar != null)
+            {
+                lienzo.Background = Brushes.Beige;
+                this.marcasDibujadas=false;
+                GraphBarras(eleccionesAGraficar,max);
 
             }
 
         }
 
-        public void OnDataRemoved(object? sender,EventArgs e)
+        public void OnCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            limpiaLienzo();
+            //Si se ha eliminado un elemento de la colección, limpiamos el lienzo.
+            if(e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
+            {
+                limpiaLienzo();
+            }
+            //Si se ha modificado un elemento de la colección, lo graficamos de nuevo.
+            else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
+            {
+
+                if (e.NewItems != null)
+                {
+                    this.eleccionesAGraficar.Clear();
+
+                    Eleccion newItem = (Eleccion)e.NewItems[0];
+
+                    if (newItem == null) return;
+
+                    limpiaLienzo();
+                    lienzo.Background = Brushes.Beige;
+                    tituloGrafica.Text = newItem.Nombre;
+
+                    this.eleccionesAGraficar.Add(newItem);
+                    GraphBarras(eleccionesAGraficar);
+                }
+                
+            }
+            else
+            {
+                limpiaLienzo();
+            }
         }
 
 
@@ -314,31 +413,25 @@ namespace Pactometro
 
         private void compararGraficos(List<Eleccion> elecciones)
         {
-            this.bufPartidos?.Clear();
-            int tieneTitulo = 0;
-
+            this.marcasDibujadas = false;
             limpiaLienzo();
             lienzo.Background = Brushes.Beige;
-
-            double xPosInicial = 20;
-
-            foreach (Eleccion e in elecciones)
-            {
-                if(tieneTitulo == 0)
-                {
-                    tituloGrafica.Text = e.Nombre;
-                    tieneTitulo = 1;
-                }
-                GraphBarras(e.Partidos, false,xPosInicial);
-                xPosInicial += 20;
-            }
+            GraphBarras(elecciones, false);
+            
         }
 
-        private void OnDataSelectedToCompare(object? sender,CustomEventArgsCompare c)
+        private void OnDataSelectedToCompare(object? sender,CustomEventArgs c)
         {
-            List<Eleccion> elecciones = c.elecciones;
 
-            compararGraficos(elecciones);
+            this.graficoComparativo = true;
+            this.eleccionesACoomparar.Clear();
+
+            //Guardamos.
+            foreach(Eleccion eleccion in c.elecciones)
+            {
+                this.eleccionesACoomparar.Add(eleccion);
+            }
+            compararGraficos(eleccionesACoomparar);
         }
 
     }
