@@ -51,7 +51,7 @@ namespace Pactometro
         private void AddElectionData(object sender, RoutedEventArgs e)
         {
 
-            AddData add = Utils.AddDataWindowSingleton.GetInstance(modeloUnico);
+            AddData add = Utils.AddDataWindowSingleton.GetInstance();
             add.DataCreated += OnDataCreated;
             add.ShowDialog();
 
@@ -86,7 +86,7 @@ namespace Pactometro
                         //Eleccion a reemplazar cuando se seleccione
                         Eleccion eleccionAReemplazar = (Eleccion)resultadosLV.SelectedItem;
 
-                        UpdateData upd = Utils.UpdateDataSingleton.GetInstance(this);
+                        UpdateData upd = Utils.UpdateDataSingleton.GetInstance();
                         upd.displayData(eleccionAReemplazar.Nombre, eleccionAReemplazar.FechaElecciones, 
                                         eleccionAReemplazar.Partidos,eleccionAReemplazar, modeloUnico);
                         upd.ShowDialog();

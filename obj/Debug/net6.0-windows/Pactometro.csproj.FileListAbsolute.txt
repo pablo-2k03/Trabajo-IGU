@@ -51,3 +51,5 @@ C:\Users\paahh\OneDrive\Escritorio\Trabajo-IGU-main\obj\Debug\net6.0-windows\ref
 C:\Users\paahh\OneDrive\Escritorio\Trabajo-IGU-main\obj\Debug\net6.0-windows\Pactometro.pdb
 C:\Users\paahh\OneDrive\Escritorio\Trabajo-IGU-main\obj\Debug\net6.0-windows\Pactometro.genruntimeconfig.cache
 C:\Users\paahh\OneDrive\Escritorio\Trabajo-IGU-main\obj\Debug\net6.0-windows\ref\Pactometro.dll
+C:\Users\Usuario\Desktop\Pactometro\obj\Debug\net6.0-windows\Coalicion.g.cs
+C:\Users\Usuario\Desktop\Pactometro\obj\Debug\net6.0-windows\Coalicion.baml

@@ -22,5 +22,15 @@ namespace Pactometro
         }
     }
 
+    public class CustomEventArgsPartidos: EventArgs
+    {
+        public List<Partido> partidosParaCoalicion { get; }
+
+        public CustomEventArgsPartidos (List<Partido> partidosParaCoalicion)
+        {
+            this.partidosParaCoalicion = partidosParaCoalicion;
+        }
+    }
+
 
 }

@@ -27,11 +27,11 @@ namespace Pactometro
         {
             private static AddData _instance = null;
 
-            public static AddData GetInstance(ModeloDatos modeloUnico)
+            public static AddData GetInstance()
             {
                 if (_instance == null)
                 {
-                    _instance = new AddData(modeloUnico);
+                    _instance = new AddData();
                     _instance.Closed += (sender, e) => _instance = null;
                 }
                 return _instance;
@@ -52,7 +52,7 @@ namespace Pactometro
         {
             private static UpdateData _instance = null;
 
-            public static UpdateData GetInstance(object sender)
+            public static UpdateData GetInstance()
             {
                 if(_instance == null)
                 {
@@ -64,7 +64,21 @@ namespace Pactometro
             }
         }
 
+        public static class CoalicionSingleton
+        {
+            private static Coalicion _instance = null;
 
+            public static Coalicion GetInstance(Eleccion e )
+            {
+                if (_instance == null)
+                {
+                    _instance = new Coalicion(e);
+                    _instance.Closed += (sender, e) => _instance = null;
+
+                }
+                return _instance;
+            }
+        }
 
 
     }

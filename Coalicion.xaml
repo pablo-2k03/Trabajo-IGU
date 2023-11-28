@@ -1,0 +1,49 @@
+﻿<Window x:Class="Pactometro.Coalicion"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Pactometro"
+        mc:Ignorable="d"
+        Title="Coalicion" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Text="Formación gobierno coalición" HorizontalAlignment="Center" Margin="30 10 0 0" FontSize="30" FontWeight="Bold" FontStretch="Condensed" Grid.ColumnSpan="2"/>
+
+        <ListView Grid.Row="1" Name="infoPartidos" 
+                  ItemsSource="{Binding Partidos}"
+                  SelectionMode="Single"
+                  PreviewMouseMove="infoPartidos_MouseMove"
+                  PreviewMouseLeftButtonDown="infoPartidos_PreviewMouseLeftButtonDown"
+                  AllowDrop="True">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="PARTIDO" Width="auto" DisplayMemberBinding="{Binding Nombre}"/>
+                    <GridViewColumn Header="VOTOS" Width="auto" DisplayMemberBinding="{Binding Votos}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <ListView Grid.Row="1" Grid.Column="1" Name="partidosCoalicion" 
+                  ItemsSource="{Binding PartidosCoalicion}"
+                  AllowDrop="True"
+                  Drop="partidosCoalicion_Drop">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="PARTIDO" DisplayMemberBinding="{Binding Nombre}" Width="auto"/>
+                    <GridViewColumn Header="VOTOS" DisplayMemberBinding="{Binding Votos}" Width="auto"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button Grid.Row="2" Grid.ColumnSpan="2" Width="200" Height="40" Content="Formar gobierno" Click="formar_gobierno"/>
+    </Grid>
+</Window>

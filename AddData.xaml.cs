@@ -42,12 +42,11 @@ namespace Pactometro
         private Partido p = new();
         private int nEscaños=0;
         private TextBox electorEscaños;
-        private ModeloDatos modeloUnico;
+        private ModeloDatos modeloUnico = Utils.DataModelSingleton.GetInstance();
 
-        public AddData(ModeloDatos modeloUnico)
+        public AddData( )
         {
             InitializeComponent();
-            this.modeloUnico = modeloUnico;
         }
 
 
