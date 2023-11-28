@@ -25,6 +25,7 @@ namespace Pactometro
 
         //Condiciones que comprueban diferentes casos del programa.
         private Boolean graficoComparativo = false;
+        private Boolean graficandoPactometro = false;
         private Boolean marcasDibujadas = false;
         public MainWindow()
         {
@@ -45,7 +46,7 @@ namespace Pactometro
             c.DataSelected += OnDataSelected;
             c.DatosGraficasClosed += OnCloseDatosGraficas;
             c.CompararElecciones += OnDataSelectedToCompare;
-
+            c.seleccionEliminada += OnDataNotSelectedAnymore;
             //Nos ponemos a escuchar cambios en el modelo de datos.
             modeloUnico.ResultadosElectorales.CollectionChanged += OnCollectionChanged;
 
@@ -65,6 +66,7 @@ namespace Pactometro
                 c.DataSelected += OnDataSelected;
                 c.DatosGraficasClosed += OnCloseDatosGraficas;
                 c.CompararElecciones += OnDataSelectedToCompare;
+                c.seleccionEliminada += OnDataNotSelectedAnymore;
             }
 
             c.Show();
@@ -74,17 +76,22 @@ namespace Pactometro
         {
             eleccionesAGraficar.Clear();
             this.marcasDibujadas = false;
+            this.graficoComparativo = false;
+            this.graficandoPactometro = false;
+
             //Limpiamos el lienzo por si habia datos.
             lienzo.Children.Clear();
 
-            //Ponemos un color beige de fondo.
-            lienzo.Background = Brushes.Beige;
-
+            //Añadimos las elecciones a la lista de eleccionesAGraficar
             foreach(var i in e.elecciones)
             {
                 eleccionesAGraficar.Add(i);
             }
+
+            //Le ponemos el titulo de la primera eleccion q haya en caso de q haya mas de 1.
             tituloGrafica.Text = e.elecciones[0].Nombre;
+            lienzo.Background = Brushes.Beige;
+
             //Graficamos.       
             GraphBarras(e.elecciones);
             
@@ -94,22 +101,86 @@ namespace Pactometro
         {
             double maxHeight = lienzo.ActualHeight - 40; // La altura maxima de las barras es la del lienzo - el margen que le dejamos al nombre.
             double barWidth = 20; // Ancho de las barras
-            double maxBarWidth = 20 * eleccionesSeleccionadas.Count;
             double xPos = 20;
             double espacioEntreBarras = 0;
             Dictionary<string,Partido> nombresElectorales = new Dictionary<string, Partido>();
             Dictionary<string,double> posiciones = new Dictionary<string,double>();
             Boolean tieneMasElecciones = false;
+            int totalElecciones = eleccionesSeleccionadas.Count;
             int i = 0;
- 
+            int totalPartidos=0;
+            int maxVotes = 0;
+            List<string> registro = new ();
+
+            //Añadimos un tooltip por si el usuario no sabe comparar graficas.
+            if(!graficoComparativo && eleccionesSeleccionadas.Count>0)
+            {
+                ToolTip infoComparar = new ToolTip();
+
+                // Content of the ToolTip
+                TextBlock titleTextBlock = new TextBlock
+                {
+                    FontWeight = FontWeights.Bold,
+                    Text = "Información adicional"
+                };
+
+                TextBlock contentTextBlock = new TextBlock
+                {
+                    Text = "Para comparar dos gráficas, primero selecciónelas en la ventana secundaria y posteriormente compare en el menú Elecciones --> Comparar gráficas."
+                };
+
+                infoComparar.Content = contentTextBlock;
+
+                Grid grid = new Grid();
+                Ellipse e = new Ellipse
+                {
+                    Width = 50,
+                    Height = 50,
+                    Fill = Brushes.AliceBlue,
+                    ToolTip = infoComparar,
+                };
+
+                TextBlock questionMark = new TextBlock
+                {
+                    Text = "?",
+                    FontWeight = FontWeights.Bold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                };
+
+                grid.Children.Add(e);
+                grid.Children.Add(questionMark);
+
+                Canvas.SetTop(grid, 0);
+                Canvas.SetRight(grid, 0);
+                lienzo.Children.Add(grid);
+                ToolTipService.SetIsEnabled(grid, true);
+            }
+
+            //Contamos el numero total de partidos distintos que va a ver en las elecciones.
+            foreach(Eleccion ele in eleccionesSeleccionadas)
+            {
+                foreach ( var ppp in ele.Partidos)
+                {
+                    if (!registro.Contains(ppp.Value.Nombre))
+                    {
+                        registro.Add(ppp.Value.Nombre);
+                        totalPartidos++;
+                    }
+                    if(ppp.Value.Votos > maxVotes)
+                    {
+                        maxVotes = ppp.Value.Votos;
+                    }
+                }
+            }
+
+            espacioEntreBarras = (lienzo.ActualWidth - barWidth) / totalPartidos - 1;
+          
+
             foreach (var eleccion in eleccionesSeleccionadas)
             {
-                if (!tieneMasElecciones)
-                {
-                    espacioEntreBarras = (lienzo.ActualWidth - barWidth) / eleccion.Partidos.Count - 1;
-                }
+                
 
-                int maxVotes = eleccion.Partidos.Values.Max(partido => partido.Votos);
                 Dictionary<String, Partido> partidos = new Dictionary<String, Partido>();
                 partidos = eleccion.Partidos;
                 
@@ -134,7 +205,6 @@ namespace Pactometro
 
                 foreach (var p in partidos)
                 {
-
                     double barHeight = (p.Value.Votos / (double)maxVotes) * maxHeight;
                     Partido partido = p.Value;
 
@@ -146,24 +216,60 @@ namespace Pactometro
                     {
                         partidoColor = System.Windows.Media.Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B);
                     }
-
+                    //Comprobamos si el nombre en la segunda iteracion ya está registrado.
                     if(nombresElectorales.ContainsKey(p.Value.Nombre))
                     {
+
+                        //Si lo está, obtenemos el color del registro con su posicion, si lo est.a
                         Partido p1 = nombresElectorales[p.Value.Nombre];
                         partidoColor = System.Windows.Media.Color.FromArgb(p1.Color.A, p1.Color.R, p1.Color.G, p1.Color.B);
 
                         if (posiciones.ContainsKey(p.Value.Nombre))
                         {
                             xPos = posiciones[p.Value.Nombre]+barWidth;
+
+                            //Si estamos en >2 elecciones, a las nuevas barras se le desplaza a la derecha.
                             if(i > 1)
                             {
                                 xPos = posiciones[p.Value.Nombre] + 2*barWidth;
                             }
                         }
-                        else
+                        
+                    }
+                    else
+                    {
+                        //Si no está en la lista de partidos, significa que es un partido que solo ha participado en la n-esima elección.
+                        if (tieneMasElecciones && i >= 1 )
                         {
-                            xPos = 2*espacioEntreBarras+barWidth;
+
+                            //Buscamos en el registro de posiciones la mas cercana y le sumamos a xPos el espacio del separador
+                            double posicionMasCercana = double.MaxValue;
+                            foreach (var posicion in posiciones)
+                            {
+                                double distancia = Math.Abs(posicion.Value - xPos);
+                                if (distancia < Math.Abs(posicionMasCercana - xPos))
+                                {
+                                    posicionMasCercana = posicion.Value;
+                                    break;
+                                }
+                            }
+                            xPos = posicionMasCercana + espacioEntreBarras; 
+                            if(posiciones.Values.Contains(xPos))
+                            {
+                                double masgrande=0;
+                                //Buscamos la ultima posicion
+                                foreach(var posicion in posiciones)
+                                {
+                                    if(posicion.Value> masgrande)
+                                    {
+                                        masgrande = posicion.Value;
+                                    }
+                                }
+                                xPos = masgrande+espacioEntreBarras;
+                                posiciones.Add(p.Value.Nombre, xPos);
+                            }
                         }
+
                     }
 
                     Rectangle bar = new Rectangle
@@ -178,7 +284,10 @@ namespace Pactometro
 
                         if (nombresElectorales.ContainsKey(p.Value.Nombre))
                         {
-                            bar.Opacity = 0.5;
+                            if(i == 1) bar.Opacity = 0.7;
+                            if (i == 2) bar.Opacity = 0.4;
+                            if (i == 3) bar.Opacity = 0.3;
+                            if (i == 4) bar.Opacity = 0.1;
                         }
                     }
 
@@ -227,7 +336,10 @@ namespace Pactometro
                         Canvas.SetBottom(partyNameLabel, 0);
                         lienzo.Children.Add(partyNameLabel);
                         nombresElectorales.Add(p.Value.Nombre,p.Value);
-                        posiciones.Add(p.Value.Nombre, xPos);
+                        if (!posiciones.ContainsKey(partyNameLabel.Text))
+                        {
+                            posiciones.Add(p.Value.Nombre, xPos);
+                        }
                     }
 
                     //Añadimos espaciado entre barras.
@@ -240,7 +352,57 @@ namespace Pactometro
                     tieneMasElecciones = true;
                     i++;
                 }
-            }   
+            }
+            if (graficoComparativo)
+            {
+                Grid legend = new Grid();
+                //Tantas filas como elecciones haya.
+                for(int l = 0; l < totalElecciones; l++)
+                {
+                    legend.RowDefinitions.Add(new RowDefinition());
+                }
+                //Dos columnas
+                legend.ColumnDefinitions.Add(new ColumnDefinition());
+                legend.ColumnDefinitions.Add(new ColumnDefinition());
+
+                legend.Width = lienzo.ActualWidth / 4;
+                legend.Height = lienzo.ActualHeight / 3;
+                legend.Background = Brushes.AliceBlue;
+
+                Canvas.SetTop(legend, 0);
+                Canvas.SetRight(legend, 0);
+
+                lienzo.Children.Add(legend);
+
+                int opacity = 1;
+                for (int k = 0; k < totalElecciones; k++)
+                {
+                    Rectangle r = new Rectangle();
+                    r.Fill = Brushes.Gray;
+                    r.Opacity = opacity;
+                    opacity -= (int)0.3;
+                    r.Width = 30;
+                    r.Height = 6;
+                    r.HorizontalAlignment = HorizontalAlignment.Center;
+
+                    Grid.SetRow(r, k);
+                    Grid.SetColumn(r, 0);
+
+                    legend.Children.Add(r);
+
+                    //Fechas
+                    TextBlock tb = new TextBlock();
+                    tb.Text = eleccionesSeleccionadas[k].FechaElecciones;
+                    tb.Foreground = Brushes.Black; 
+                    tb.HorizontalAlignment = HorizontalAlignment.Center;
+                    tb.Margin = new Thickness(0,20,0,0);
+                    Grid.SetRow(tb, k);
+                    Grid.SetColumn(tb, 1);
+
+                    legend.Children.Add(tb);
+                    
+                }
+            }
         }
 
         private void AddEventHandler(FrameworkElement e,Rectangle barra,Partido p,Eleccion el)
@@ -293,6 +455,7 @@ namespace Pactometro
             c.DataSelected -= OnDataSelected;
             c.DatosGraficasClosed -= OnCloseDatosGraficas;
             c.CompararElecciones -= OnDataSelectedToCompare;
+            c.seleccionEliminada -= OnDataNotSelectedAnymore;
             c = null;
         }
 
@@ -328,11 +491,17 @@ namespace Pactometro
                 this.marcasDibujadas = false;
                 GraphBarras(eleccionesACoomparar, max);
             }
-            if(eleccionesAGraficar != null)
+            else if(this.graficandoPactometro)
             {
-                lienzo.Background = Brushes.Beige;
-                this.marcasDibujadas=false;
-                GraphBarras(eleccionesAGraficar,max);
+                graphPactometro(this.eleccionesAGraficar[0],max);
+            }
+            else
+            {
+                if (eleccionesAGraficar != null)
+                {
+                    this.marcasDibujadas = false;
+                    GraphBarras(eleccionesAGraficar, max);
+                }
 
             }
 
@@ -346,7 +515,8 @@ namespace Pactometro
                 limpiaLienzo();
             }
             //Si se ha modificado un elemento de la colección, lo graficamos de nuevo.
-            else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
+            else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace || 
+                     e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
             {
 
                 if (e.NewItems != null)
@@ -366,10 +536,6 @@ namespace Pactometro
                 }
                 
             }
-            else
-            {
-                limpiaLienzo();
-            }
         }
 
 
@@ -386,13 +552,12 @@ namespace Pactometro
             for (int i = 10; i <= maxVotes; i += intervalo)
             {
 
-
                 Line mark = new Line
                 {
                     X1 = 0,
                     X2 = 5,
-                    Y1 = maxHeight - (i / (double)maxVotes * maxHeight),
-                    Y2 = maxHeight - (i / (double)maxVotes * maxHeight),
+                    Y1 = maxHeight - (i / (double)maxVotes * maxHeight)+20,
+                    Y2 = maxHeight - (i / (double)maxVotes * maxHeight)+20,
                     Stroke = Brushes.Red
                 };
 
@@ -403,7 +568,7 @@ namespace Pactometro
                     Text = i.ToString(),
                     HorizontalAlignment = HorizontalAlignment.Right,
                     VerticalAlignment = VerticalAlignment.Bottom,
-                    Margin = new Thickness(-25, maxHeight - (i / (double)maxVotes * maxHeight) - 10, 0, 0),
+                    Margin = new Thickness(-25, maxHeight - (i / (double)maxVotes * maxHeight) + 10, 0, 0),
                     Foreground = Brushes.Red
                 };
 
@@ -434,5 +599,44 @@ namespace Pactometro
             compararGraficos(eleccionesACoomparar);
         }
 
+
+        private void OnDataNotSelectedAnymore(object? sender, EventArgs e)
+        {
+            limpiaLienzo();
+        }
+
+        private void genPact_Click(object sender, RoutedEventArgs e)
+        {
+            if(this.eleccionesAGraficar.Count == 0)
+            {
+                MessageBox.Show("Por favor, seleccione una elección.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
+            {
+                this.graficandoPactometro = true;
+                limpiaLienzo();
+                Eleccion seleccion = this.eleccionesAGraficar[0];
+                tituloGrafica.Text = seleccion.Nombre;
+                lienzo.Background = Brushes.Beige;
+                graphPactometro(seleccion,false);
+            }
+        }
+
+        private void graphPactometro(Eleccion seleccion,Boolean isMax)
+        {
+
+            double width = isMax ? lienzo.Width : lienzo.ActualWidth;
+            Line line = new()
+            {
+                X1 = 0,
+                X2 = width,
+                Y1 = seleccion.Mayoria,
+                Y2 = seleccion.Mayoria,
+                Stroke = Brushes.Black,  // Añadí Stroke para especificar el color de la línea
+                StrokeThickness = 2
+            };
+            lienzo.Children.Add(line);
+        }
     }
+
 }

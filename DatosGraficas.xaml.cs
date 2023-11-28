@@ -23,6 +23,8 @@ namespace Pactometro
 
         public event EventHandler<CustomEventArgs> CompararElecciones;
 
+        public event EventHandler<EventArgs> seleccionEliminada;
+
         //Instancia del modelo unico que será el almacen de datos.
         private ModeloDatos modeloUnico;
 
@@ -58,7 +60,7 @@ namespace Pactometro
         //Cargar datos de prueba.
         private void LoadDataTests(object sender, RoutedEventArgs e)
         {
-
+            this.eleccionesACoomparar.Clear();
             modeloUnico.LoadDataTests();
         }
 
@@ -207,7 +209,14 @@ namespace Pactometro
 
         private void OnDataCreated(object? sender,EventArgs e)
         {
-            resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;     
+            if (modeloUnico.ResultadosElectorales.Count > 0)
+            {
+                resultadosLV.SelectedItem = modeloUnico.ResultadosElectorales.Last();
+            }
+            else
+            {
+                resultadosLV.SelectedItem = modeloUnico.ResultadosElectorales.First();
+            }
         }
 
         private void RestoreBackgroundColors(ListView listView)
@@ -268,6 +277,7 @@ namespace Pactometro
             eleccionesACoomparar?.Clear();
             RestoreBackgroundColors(resultadosLV);
             _newData.IsEnabled = true;
+            seleccionEliminada(this, e);
         }
     }
         

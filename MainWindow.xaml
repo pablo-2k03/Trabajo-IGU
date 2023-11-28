@@ -19,10 +19,7 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="Opciones" Name="_opciones">
                 <MenuItem Header="Ver datos" Name="_verDatos" Click="SwitchWindow"></MenuItem>
-            </MenuItem>
-            <MenuItem Header="Gráficos">
-                <MenuItem Header="Barras" Name="_Barras"/>
-                <MenuItem Header="Comparativo" Name="_comparativo" />
+                <MenuItem Header="Generar Pactómetro" Name="genPact" Click="genPact_Click"/>
             </MenuItem>
         </Menu>
 
@@ -30,8 +27,8 @@
         <TextBlock Name="tituloGrafica" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,0,0" FontSize="16" FontWeight="Bold" DockPanel.Dock="Top"/>
 
         <!-- Canvas to display the graph, in the middle of the DockPanel -->
-        <ScrollViewer HorizontalScrollBarVisibility="Auto">
-            <Canvas Name="lienzo"/>
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <Canvas Name="lienzo" Background="Transparent" Margin="0,0,0,20"/>
         </ScrollViewer>
     </DockPanel>
 
