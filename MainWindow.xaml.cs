@@ -84,6 +84,7 @@ namespace Pactometro
             this.marcasDibujadas = false;
             this.graficoComparativo = false;
             this.graficandoPactometro = false;
+            this.lineaDibujada = false;
 
             //Limpiamos el lienzo por si habia datos.
             lienzo.Children.Clear();
@@ -171,15 +172,15 @@ namespace Pactometro
             {
                 foreach ( var ppp in ele.Partidos)
                 {
-                    if (!registro.Contains(ppp.Value.Nombre))
+                    if (!registro.Contains(ppp.Nombre))
                     {
-                        registro.Add(ppp.Value.Nombre);
+                        registro.Add(ppp.Nombre);
                         totalPartidos++;
                     }
                     //Pillamos el numero maximo de votos.
-                    if(ppp.Value.Votos > maxVotes)
+                    if(ppp.Votos > maxVotes)
                     {
-                        maxVotes = ppp.Value.Votos;
+                        maxVotes = ppp.Votos;
                     }
                 }
             }
@@ -191,7 +192,7 @@ namespace Pactometro
             {
                 
 
-                Dictionary<String, Partido> partidos = new Dictionary<String, Partido>();
+                List< Partido> partidos = new List<Partido>();
                 partidos = eleccion.Partidos;
                 
                 //Comprobamos si estamos en pantalla completa o no.
@@ -215,8 +216,8 @@ namespace Pactometro
 
                 foreach (var p in partidos)
                 {
-                    double barHeight = (p.Value.Votos / (double)maxVotes) * maxHeight;
-                    Partido partido = p.Value;
+                    double barHeight = (p.Votos / (double)maxVotes) * maxHeight;
+                    Partido partido = p;
 
                     Color partidoColor;
 
@@ -227,21 +228,21 @@ namespace Pactometro
                         partidoColor = System.Windows.Media.Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B);
                     }
                     //Comprobamos si el nombre en la segunda iteracion ya está registrado.
-                    if(nombresElectorales.ContainsKey(p.Value.Nombre))
+                    if(nombresElectorales.ContainsKey(p.Nombre))
                     {
 
                         //Si lo está, obtenemos el color del registro con su posicion, si lo est.a
-                        Partido p1 = nombresElectorales[p.Value.Nombre];
+                        Partido p1 = nombresElectorales[p.Nombre];
                         partidoColor = System.Windows.Media.Color.FromArgb(p1.Color.A, p1.Color.R, p1.Color.G, p1.Color.B);
 
-                        if (posiciones.ContainsKey(p.Value.Nombre))
+                        if (posiciones.ContainsKey(p.Nombre))
                         {
-                            xPos = posiciones[p.Value.Nombre]+barWidth;
+                            xPos = posiciones[p.Nombre]+barWidth;
 
                             //Si estamos en >2 elecciones, a las nuevas barras se le desplaza a la derecha.
                             if(i > 1)
                             {
-                                xPos = posiciones[p.Value.Nombre] + 2*barWidth;
+                                xPos = posiciones[p.Nombre] + 2*barWidth;
                             }
                         }
                         
@@ -278,7 +279,7 @@ namespace Pactometro
                                     }
                                 }
                                 xPos = masgrande+espacioEntreBarras;
-                                posiciones.Add(p.Value.Nombre, xPos);
+                                posiciones.Add(p.Nombre, xPos);
                             }
                         }
 
@@ -294,7 +295,7 @@ namespace Pactometro
                     if(tieneMasElecciones)
                     {
 
-                        if (nombresElectorales.ContainsKey(p.Value.Nombre))
+                        if (nombresElectorales.ContainsKey(p.Nombre))
                         {
 
                             if(i == 1) bar.Opacity = 0.7; //2 elecciones
@@ -305,10 +306,10 @@ namespace Pactometro
                     }
 
                     // Añadimos un toolTip para ver el numero de votos que tiene un partido cuando el raton pasa por encima.
-                    bar.ToolTip = new ToolTip { Content = $"{p.Value.Votos} escaños" };
+                    bar.ToolTip = new ToolTip { Content = $"{p.Votos} escaños" };
 
                     //Añadimos el evento al gestor del primer elemento que pasemos como parametro.
-                    AddEventHandler(bar, bar,p.Value,eleccion);
+                    AddEventHandler(bar, bar,p,eleccion);
                     // Position the bar and add it to the canvas
                     Canvas.SetLeft(bar, xPos);
                     Canvas.SetBottom(bar, 20);
@@ -319,17 +320,17 @@ namespace Pactometro
                     // Añadimos el nombre del partido en la parte inferior.
                     TextBlock partyNameLabel = new TextBlock
                     {
-                        Text = p.Key,
+                        Text = p.Nombre,
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Top
                     };
 
                     //También se lo añadimos al nombre, por si se da el caso de que la barra sea tan pequeña q casi ni se vea.
-                    AddEventHandler(partyNameLabel, bar,p.Value,eleccion);
+                    AddEventHandler(partyNameLabel, bar,p,eleccion);
 
                     //Calculamos el ancho del texto utilizando la clase FormattedText.
                     FormattedText formattedText = new FormattedText(
-                        p.Key,
+                        p.Nombre,
                         CultureInfo.CurrentCulture,
                         FlowDirection.LeftToRight,
                         new Typeface(partyNameLabel.FontFamily, partyNameLabel.FontStyle, partyNameLabel.FontWeight, partyNameLabel.FontStretch),
@@ -348,10 +349,10 @@ namespace Pactometro
                     {
                         Canvas.SetBottom(partyNameLabel, 0);
                         lienzo.Children.Add(partyNameLabel);
-                        nombresElectorales.Add(p.Value.Nombre,p.Value);
+                        nombresElectorales.Add(p.Nombre,p);
                         if (!posiciones.ContainsKey(partyNameLabel.Text))
                         {
-                            posiciones.Add(p.Value.Nombre, xPos);
+                            posiciones.Add(p.Nombre, xPos);
                         }
                     }
 
@@ -371,17 +372,17 @@ namespace Pactometro
             //Una vez acabado de graficar, si es comparativo añadimos la leyenda.
             if (graficoComparativo)
             {
+
+                //Creamos un grid para añadirle posteriormente los rectangulos con las fechas y las  distintas opacidades.
                 Grid legend = new Grid();
 
-                //Tantas filas como elecciones haya.
-                for(int l = 0; l < totalElecciones; l++)
+                for (int l = 0; l < totalElecciones; l++)
                 {
                     legend.RowDefinitions.Add(new RowDefinition());
                 }
 
-                //Dos columnas
                 legend.ColumnDefinitions.Add(new ColumnDefinition());
-                legend.ColumnDefinitions.Add(new ColumnDefinition());
+                legend.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) }); // La segunda columna se expandirá
 
                 legend.Width = lienzo.ActualWidth / 4;
                 legend.Height = lienzo.ActualHeight / 3;
@@ -392,14 +393,18 @@ namespace Pactometro
 
                 lienzo.Children.Add(legend);
 
-                int opacity = 1;
+
                 for (int k = 0; k < totalElecciones; k++)
                 {
+
+                    //Ajustamos la opacidad de acorde al numero de elecciones representadas a graficar.
+                    double opacity = 1.0 - k * 0.3;
+
                     Rectangle r = new Rectangle();
                     r.Fill = Brushes.Gray;
                     r.Opacity = opacity;
-                    opacity -= (int)0.3;
                     r.Width = 30;
+                    r.VerticalAlignment = VerticalAlignment.Center;
                     r.Height = 6;
                     r.HorizontalAlignment = HorizontalAlignment.Center;
 
@@ -408,18 +413,15 @@ namespace Pactometro
 
                     legend.Children.Add(r);
 
-                    //Fechas
                     TextBlock tb = new TextBlock();
                     tb.Text = eleccionesSeleccionadas[k].FechaElecciones;
-                    tb.TextWrapping = TextWrapping.Wrap;
-                    tb.Foreground = Brushes.Black; 
+                    tb.VerticalAlignment = VerticalAlignment.Center;
+                    tb.Foreground = Brushes.Black;
                     tb.HorizontalAlignment = HorizontalAlignment.Center;
-                    tb.Margin = new Thickness(0,20,0,0);
                     Grid.SetRow(tb, k);
                     Grid.SetColumn(tb, 1);
 
                     legend.Children.Add(tb);
-                    
                 }
             }
         }
@@ -445,7 +447,7 @@ namespace Pactometro
                         int indiceEleccion = modeloUnico.ResultadosElectorales.IndexOf(el);
 
                         //Lo actualizamos en el modelo.
-                        foreach( var i in modeloUnico.ResultadosElectorales[indiceEleccion].Partidos.Values)
+                        foreach( var i in modeloUnico.ResultadosElectorales[indiceEleccion].Partidos)
                         {
                             if( i.Nombre == p.Nombre)
                             {
@@ -512,10 +514,10 @@ namespace Pactometro
             }
             else if(this.graficandoPactometro)
             {
-                string onlyWinner = checkOneWinner(this.eleccionesAGraficar[0]);
-                if (this.partidos.Count > 0 )
-                {
-                    this.lineaDibujada = false;
+                string onlyWinner = checkOneWinner(this.eleccionPactometro);
+                this.lineaDibujada = false;
+                if (onlyWinner == string.Empty )
+                {          
                     if (max)
                     {
                         resizePactometro(max);
@@ -525,7 +527,9 @@ namespace Pactometro
                         resizePactometro();
                     }
                 }
-                else { graphPactometro(this.eleccionesAGraficar[0], max, onlyWinner); }
+                else { 
+                    graphPactometro(this.eleccionPactometro, max, onlyWinner); 
+                }
             }
             else
             {
@@ -621,6 +625,7 @@ namespace Pactometro
         {
 
             this.graficoComparativo = true;
+            this.graficandoPactometro = false;
             this.eleccionesACoomparar.Clear();
 
             //Guardamos.
@@ -646,6 +651,7 @@ namespace Pactometro
             else
             {
                 this.graficandoPactometro = true;
+                this.graficoComparativo = false;
                 limpiaLienzo();
                 eleccionPactometro = this.eleccionesAGraficar[0];
                 tituloGrafica.Text = eleccionPactometro.Nombre;
@@ -659,9 +665,10 @@ namespace Pactometro
 
         private void graphPactometro(Eleccion seleccion,Boolean isMax,string ganadorEnSolitario = "")
         {
-
             double width = isMax ? lienzo.Width : lienzo.ActualWidth;
             int marginInferior = 20;
+            double maxHeight = lienzo.ActualHeight - marginInferior;
+            int maxVotes = eleccionPactometro.Partidos.Max(partido => partido.Votos);
             if (!this.lineaDibujada)
             {
                 Line line = new()
@@ -681,7 +688,16 @@ namespace Pactometro
             {
                 double barWidth = 60;
                 double espaciadoEntreBarras = (lienzo.ActualWidth - 40) / (2 * barWidth);
-                Partido p = seleccion.Partidos[ganadorEnSolitario];
+                int index = -1;
+                foreach(var i in seleccion.Partidos)
+                {
+                    if (i.Nombre.Equals(ganadorEnSolitario))
+                    {
+                        index = seleccion.Partidos.IndexOf(i);
+                        break;
+                    }
+                }
+                Partido p = seleccion.Partidos[index];
                 Rectangle r = new()
                 {
                     Fill = new SolidColorBrush(Color.FromArgb(p.Color.A, p.Color.R, p.Color.G, p.Color.B)),
@@ -709,16 +725,18 @@ namespace Pactometro
                 lienzo.Children.Add(nombrePartidoGanador);
 
                 double xPos = 20;
-
+                int suma = 0;
                 foreach (var partido in seleccion.Partidos)
                 {
-                    if(partido.Value.Nombre != ganadorEnSolitario)
+                    if (partido.Nombre != ganadorEnSolitario)
                     {
+                        suma += partido.Votos;
+
                         Rectangle r2 = new()
                         {
-                            Fill = new SolidColorBrush(Color.FromArgb(partido.Value.Color.A, partido.Value.Color.R, partido.Value.Color.G, partido.Value.Color.B)),
+                            Fill = new SolidColorBrush(Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B)),
                             Width = barWidth,
-                            Height = partido.Value.Votos
+                            Height = p.Votos
                         };
 
                         Canvas.SetLeft(r2, ((lienzo.ActualWidth - 2 * barWidth) / 3) * 2);
@@ -728,17 +746,17 @@ namespace Pactometro
 
                         TextBlock nombrePartido = new()
                         {
-                            Text = partido.Value.Nombre + "-" + partido.Value.Votos
+                            Text = partido.Nombre + "-" + partido.Votos
                         };
                         Canvas.SetBottom(nombrePartido, marginInferior + xPos);
                         Canvas.SetLeft(nombrePartido, ((lienzo.ActualWidth - 2 * barWidth) / 3*2) + barWidth);
                         lienzo.Children.Add(nombrePartido);
-                        xPos += partido.Value.Votos;
+                        xPos += p.Votos;
                     }
                 }
                 TextBlock tb2 = new()
                 {
-                    Text = (xPos- marginInferior).ToString() ,
+                    Text = suma.ToString(),
                 };
                 Canvas.SetLeft(tb2, ((lienzo.ActualWidth - 2 * barWidth) / 3) * 2);
                 Canvas.SetBottom(tb2, 0);
@@ -758,9 +776,9 @@ namespace Pactometro
         {
             foreach(var p in seleccion.Partidos)
             {
-                if (p.Value.Votos >= seleccion.Mayoria)
+                if (p.Votos >= seleccion.Mayoria)
                 {
-                    return p.Value.Nombre;
+                    return p.Nombre;
                 }
             }
             return string.Empty;
@@ -771,19 +789,20 @@ namespace Pactometro
         private void OnCoalicion(object? sender,CustomEventArgsPartidos c)
         {
             partidos = new List<Partido>();
-            
+            int maxVotes = eleccionPactometro.Partidos.Max(partido => partido.Votos);
+            int suma = 0;
             foreach (var i in c.partidosParaCoalicion)
             {
                 partidos.Add(i);
             }
 
-            int marginInferior = 20;
             double barWidth = 60;
             double espaciadoEntreBarras = (lienzo.ActualWidth - 40) / (2 * barWidth);
             double xPos = 20;
+            double maxHeight = lienzo.ActualHeight - xPos;
             foreach (var partido in partidos)
             {
-
+                suma += partido.Votos;
                 Rectangle r2 = new()
                 {
                     Fill = new SolidColorBrush(Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B)),
@@ -800,11 +819,18 @@ namespace Pactometro
                 {
                     Text = partido.Nombre + "-" + partido.Votos
                 };
-                Canvas.SetBottom(nombrePartido, marginInferior + xPos);
+                Canvas.SetBottom(nombrePartido, xPos + partido.Votos);
                 Canvas.SetLeft(nombrePartido, ((lienzo.ActualWidth - 2 * barWidth) / 3) + barWidth);
                 lienzo.Children.Add(nombrePartido);
                 xPos += partido.Votos;
             }
+            TextBlock tb2 = new()
+            {
+                Text = suma.ToString(),
+            };
+            Canvas.SetLeft(tb2, ((lienzo.ActualWidth - 2 * barWidth) / 3));
+            Canvas.SetBottom(tb2, 0);
+            lienzo.Children.Add(tb2);
             List<string> partidosRestantes = new List<string>();
             /*
              * Con una sentencia LINQ seleccionamos los nombres de los partidos que no están en la lista de partidos
@@ -816,77 +842,27 @@ namespace Pactometro
              * Por ultimo, la clausa select selecciona para guardar el valor deseado, en este caso partido.Value.Nombre.
              */ 
             partidosRestantes.AddRange(eleccionPactometro.Partidos
-            .Where(partido => !partidos.Any(p => p.Nombre == partido.Value.Nombre))
-            .Select(partido => partido.Value.Nombre));
+            .Where(partido => !partidos.Any(p => p.Nombre == partido.Nombre))
+            .Select(partido => partido.Nombre));
 
             //Ahora buscamos en la lista inicial todos los partidos que estan ahora en restantes.
             List<Partido> partidosNoCoalicion = new();
             foreach (var i in partidosRestantes)
             {
-                if (eleccionPactometro.Partidos.Keys.Contains(i))
+                foreach (var p in  eleccionPactometro.Partidos)
                 {
-                    partidosNoCoalicion.Add(eleccionPactometro.Partidos[i]);
+                    int index = eleccionPactometro.Partidos.IndexOf(p);
+                    if (p.Nombre.Contains(i))
+                    {
+                        partidosNoCoalicion.Add(eleccionPactometro.Partidos[index]);
+                    }
                 }
             }
             xPos = 20;
-            foreach(var partido in partidosNoCoalicion)
+            suma = 0;
+            foreach (var partido in partidosNoCoalicion)
             {
-                double barHeight = partido.Votos;
-                if (partido.Votos < 5) { barHeight = 5; }
-                Rectangle r2 = new()
-                {
-                    Fill = new SolidColorBrush(Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B)),
-                    Width = barWidth,
-                    Height = barHeight
-                };
-
-                Canvas.SetLeft(r2, ((lienzo.ActualWidth - 2 * barWidth) / 3) * 2);
-                Canvas.SetBottom(r2, xPos);
-                lienzo.Children.Add(r2);
-
-
-                TextBlock nombrePartido = new()
-                {
-                    Text = partido.Nombre + "-" + partido.Votos
-                };
-                Canvas.SetBottom(nombrePartido, marginInferior + xPos);
-                Canvas.SetLeft(nombrePartido, ((lienzo.ActualWidth - 2 * barWidth) / 3 * 2) + barWidth);
-                lienzo.Children.Add(nombrePartido);
-                xPos += partido.Votos;
-            }
-        }
-
-
-        //TODO: RESIZE THE PACTOMETRO
-
-        private void resizePactometro(Boolean isMax=false)
-        {
-
-
-            int marginInferior = 20;
-            double barWidth = 60;
-            double espaciadoEntreBarras = (lienzo.ActualWidth - 40) / (2 * barWidth);
-            double xPos = 20;
-
-            if (!this.lineaDibujada)
-            {
-                double width = isMax ? lienzo.Width : lienzo.ActualWidth;
-                Line line = new()
-                {
-                    X1 = 0,
-                    X2 = width,
-                    Y1 = eleccionPactometro.Mayoria - marginInferior,
-                    Y2 = eleccionPactometro.Mayoria - marginInferior,
-                    Stroke = Brushes.Black,  // Añadí Stroke para especificar el color de la línea
-                    StrokeThickness = 2
-                };
-                lienzo.Children.Add(line);
-                this.lineaDibujada = true;
-            }
-
-            foreach (var partido in partidos)
-            {
-
+                suma += partido.Votos;
                 Rectangle r2 = new()
                 {
                     Fill = new SolidColorBrush(Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B)),
@@ -894,7 +870,7 @@ namespace Pactometro
                     Height = partido.Votos
                 };
 
-                Canvas.SetLeft(r2, ((lienzo.ActualWidth - 2 * barWidth) / 3));
+                Canvas.SetLeft(r2, ((lienzo.ActualWidth - 2 * barWidth) / 3) * 2);
                 Canvas.SetBottom(r2, xPos);
                 lienzo.Children.Add(r2);
 
@@ -903,39 +879,118 @@ namespace Pactometro
                 {
                     Text = partido.Nombre + "-" + partido.Votos
                 };
-                Canvas.SetBottom(nombrePartido, marginInferior + xPos);
-                Canvas.SetLeft(nombrePartido, ((lienzo.ActualWidth - 2 * barWidth) / 3) + barWidth);
+                Canvas.SetBottom(nombrePartido, xPos + partido.Votos);
+                Canvas.SetLeft(nombrePartido, ((lienzo.ActualWidth - 2 * barWidth) / 3 * 2) + barWidth);
                 lienzo.Children.Add(nombrePartido);
                 xPos += partido.Votos;
             }
-            List<string> partidosRestantes = new List<string>();
-            /*
-             * Con una sentencia LINQ seleccionamos los nombres de los partidos que no están en la lista de partidos
-             * 
-             * AddRange(toma el rango de partidos que vamos a añadir)
-             * La clausula where indica la condición de busqueda, en este caso, 
-             * cualquier partido que tenga un nombre distinto a cualquier partido de la coleccion "partidos"
-             * 
-             * Por ultimo, la clausa select selecciona para guardar el valor deseado, en este caso partido.Value.Nombre.
-             */
-            partidosRestantes.AddRange(eleccionPactometro.Partidos
-            .Where(partido => !partidos.Any(p => p.Nombre == partido.Value.Nombre))
-            .Select(partido => partido.Value.Nombre));
+            TextBlock tb3 = new()
+            {
+                Text = suma.ToString(),
+            };
+            Canvas.SetLeft(tb3, ((lienzo.ActualWidth - 2 * barWidth) / 3)*2);
+            Canvas.SetBottom(tb3, 0);
+            lienzo.Children.Add(tb3);
+        }
 
-            //Ahora buscamos en la lista inicial todos los partidos que estan ahora en restantes.
+        private void resizePactometro(bool isMax = false)
+        {
+            double barWidth = 60;
+            double espaciadoEntreBarras = (lienzo.ActualWidth - 40) / (2 * barWidth);
+            double xPos = 20;
+            int maxVotes = eleccionPactometro.Partidos.Max(partido => partido.Votos);
+            double maxHeight = lienzo.ActualHeight - xPos;
+            int suma = 0;
+
+            if (!this.lineaDibujada)
+            {
+                double width = isMax ? lienzo.Width : lienzo.ActualWidth;
+                double canvasHeight = lienzo.ActualHeight;
+
+                Line line = new()
+                {
+                    X1 = 0,
+                    X2 = width,
+                    Y1 = canvasHeight * (eleccionPactometro.Mayoria - 20) / maxHeight,
+                    Y2 = canvasHeight * (eleccionPactometro.Mayoria - 20) / maxHeight,
+                    Stroke = Brushes.Black,
+                    StrokeThickness = 2
+                };
+
+                lienzo.Children.Add(line);
+                this.lineaDibujada = true;
+            }
+
+            int fI = 0;
+            foreach (var partido in partidos)
+            {
+                suma += partido.Votos;
+
+                // Ajuste para calcular la altura de las barras de manera proporcional al lienzo
+                double barHeight = (partido.Votos == maxVotes)
+                    ? maxHeight
+                    : (partido.Votos / (double)maxVotes) * (maxHeight - 20);
+
+                Rectangle r2 = new()
+                {
+                    Fill = new SolidColorBrush(Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B)),
+                    Width = barWidth,
+                    Height = barHeight
+                };
+
+                Canvas.SetLeft(r2, ((lienzo.ActualWidth - 2 * barWidth) / 3));
+
+                if (fI == 0) { xPos = 20; fI = 1; }
+
+                Canvas.SetBottom(r2, xPos);
+                lienzo.Children.Add(r2);
+
+                TextBlock nombrePartido = new()
+                {
+                    Text = partido.Nombre + "-" + partido.Votos
+                };
+                Canvas.SetLeft(nombrePartido, ((lienzo.ActualWidth - 2 * barWidth) / 3) + barWidth);
+                Canvas.SetBottom(nombrePartido, xPos + barHeight);
+                lienzo.Children.Add(nombrePartido);
+
+                xPos += barHeight;
+            }
+
+            TextBlock tb3 = new()
+            {
+                Text = suma.ToString(),
+            };
+            Canvas.SetLeft(tb3, ((lienzo.ActualWidth - 2 * barWidth) / 3));
+            Canvas.SetBottom(tb3, 0);
+            lienzo.Children.Add(tb3);
+
+            List<string> partidosRestantes = eleccionPactometro.Partidos
+                .Where(partido => !partidos.Any(p => p.Nombre == partido.Nombre))
+                .Select(partido => partido.Nombre)
+                .ToList();
+
             List<Partido> partidosNoCoalicion = new();
+
             foreach (var i in partidosRestantes)
             {
-                if (eleccionPactometro.Partidos.Keys.Contains(i))
+                foreach (var p in eleccionPactometro.Partidos)
                 {
-                    partidosNoCoalicion.Add(eleccionPactometro.Partidos[i]);
+                    int index = eleccionPactometro.Partidos.IndexOf(p);
+                    if (p.Nombre.Contains(i))
+                    {
+                        partidosNoCoalicion.Add(eleccionPactometro.Partidos[index]);
+                    }
                 }
             }
+
             xPos = 20;
+            suma = 0;
+
             foreach (var partido in partidosNoCoalicion)
             {
-                double barHeight = partido.Votos;
-                if (partido.Votos < 5) { barHeight = 5; }
+                double barHeight = (partido.Votos / (double)maxVotes) * maxHeight;
+                suma += partido.Votos;
+
                 Rectangle r2 = new()
                 {
                     Fill = new SolidColorBrush(Color.FromArgb(partido.Color.A, partido.Color.R, partido.Color.G, partido.Color.B)),
@@ -947,17 +1002,27 @@ namespace Pactometro
                 Canvas.SetBottom(r2, xPos);
                 lienzo.Children.Add(r2);
 
-
                 TextBlock nombrePartido = new()
                 {
                     Text = partido.Nombre + "-" + partido.Votos
                 };
-                Canvas.SetBottom(nombrePartido, marginInferior + xPos);
+                Canvas.SetBottom(nombrePartido, xPos + barHeight);
                 Canvas.SetLeft(nombrePartido, ((lienzo.ActualWidth - 2 * barWidth) / 3 * 2) + barWidth);
                 lienzo.Children.Add(nombrePartido);
-                xPos += partido.Votos;
+
+                xPos += barHeight;
             }
+
+            TextBlock tb2 = new()
+            {
+                Text = suma.ToString(),
+            };
+            Canvas.SetLeft(tb2, ((lienzo.ActualWidth - 2 * barWidth) / 3) * 2);
+            Canvas.SetBottom(tb2, 0);
+            lienzo.Children.Add(tb2);
         }
+
+
 
     }
 

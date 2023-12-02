@@ -20,17 +20,10 @@
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="Pactometro.App" Collapsed="true">
-    <Position X="9" Y="3" Width="1.5" />
+    <Position X="7" Y="1.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>App.xaml.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="Pactometro.CustomEventArgsMain" Collapsed="true">
-    <Position X="9" Y="0.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>CustomEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Pactometro.DatosGraficas">
@@ -39,7 +32,7 @@
       <Compartment Name="Nested Types" Collapsed="false" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AEAAAAQIAAAgAAAAAAAAACAAAQAAAAAAQABAAAAAAAA=</HashCode>
+      <HashCode>AEAARAwKAAAgAAAAAAgAAKAAAAAAAAAAQABQAAQAAQA=</HashCode>
       <FileName>DatosGraficas.xaml.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -50,20 +43,20 @@
       <Compartment Name="Nested Types" Collapsed="false" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AAGAIJAAAQAAAIIAAAAAAAgABAQAAACAAABABAAAAAA=</HashCode>
+      <HashCode>ABGQQJQAFQACAIKAAACAAIAAAAQCABCQAABBBAAQAAQ=</HashCode>
       <FileName>MainWindow.xaml.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.22" />
   </Class>
   <Class Name="Pactometro.Partido" Collapsed="true">
-    <Position X="9" Y="1.75" Width="1.5" />
+    <Position X="7" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gEAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgAAAAAA=</HashCode>
       <FileName>Partido.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Pactometro.Utils">
-    <Position X="9" Y="4" Width="1.5" />
+    <Position X="7" Y="2.25" Width="1.5" />
     <Compartments>
       <Compartment Name="Nested Types" Collapsed="false" />
     </Compartments>
@@ -88,6 +81,11 @@
           <NewMemberFileName>Utils.cs</NewMemberFileName>
         </TypeIdentifier>
       </Class>
+      <Class Name="Pactometro.Utils.CoalicionSingleton" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Utils.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
     </NestedTypes>
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
@@ -95,7 +93,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="Pactometro.ModeloDatos">
-    <Position X="4.75" Y="5" Width="1.5" />
+    <Position X="9.25" Y="1.75" Width="1.5" />
     <Compartments>
       <Compartment Name="Methods" Collapsed="true" />
       <Compartment Name="Nested Types" Collapsed="false" />
@@ -108,7 +106,7 @@
       </Enum>
     </NestedTypes>
     <TypeIdentifier>
-      <HashCode>AAAAAACAGAAgAAAAAAAAAEAAAAAAAAAAAACAAAAAAAA=</HashCode>
+      <HashCode>AAAAAACAGAAgAAAAAACAAEAAAAAAAAAAAACAAAAAAAA=</HashCode>
       <FileName>ModeloDatos.cs</FileName>
     </TypeIdentifier>
   </Class>

@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="alianzas.ico" />
     <None Remove="dg.ico" />
     <None Remove="main.ico" />
     <None Remove="suma.ico" />
@@ -18,6 +19,7 @@
 
 
   <ItemGroup>
+    <Resource Include="alianzas.ico" />
     <Resource Include="dg.ico" />
     <Resource Include="main.ico" />
     <Resource Include="suma.ico" />

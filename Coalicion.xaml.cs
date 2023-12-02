@@ -19,7 +19,6 @@ namespace Pactometro
 
 
         private Eleccion eleccion;
-        private bool isDragging = false;
         private Point startPoint;
         private ObservableCollection<Partido> partidos;
 
@@ -27,7 +26,7 @@ namespace Pactometro
         {
             InitializeComponent();
             eleccion = seleccion;
-            partidos = new ObservableCollection<Partido>(eleccion.Partidos.Values);
+            partidos = new ObservableCollection<Partido>(eleccion.Partidos);
             infoPartidos.ItemsSource = partidos;
         }
 
@@ -44,9 +43,13 @@ namespace Pactometro
                 if (Math.Abs(currentPosition.X - startPoint.X) > SystemParameters.MinimumHorizontalDragDistance ||
                     Math.Abs(currentPosition.Y - startPoint.Y) > SystemParameters.MinimumVerticalDragDistance)
                 {
-                    isDragging = true;
                     Partido selectedItem = (Partido)infoPartidos.SelectedItem;
-                    DragDrop.DoDragDrop(infoPartidos, selectedItem, DragDropEffects.Move);
+
+                    //Si es nulo, el usuario puede estar utilizando el scroll.
+                    if (selectedItem != null)
+                    {
+                        DragDrop.DoDragDrop(infoPartidos, selectedItem, DragDropEffects.Move);
+                    }
                 }
             }
         }
@@ -92,6 +95,17 @@ namespace Pactometro
                 Close();
             }
            
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Partido selectedItem = (Partido)infoPartidos.SelectedItem;
+
+            if(selectedItem != null)
+            {
+                partidos.Remove(selectedItem);
+                partidosCoalicion.Items.Add(selectedItem);
+            }
         }
     }
 

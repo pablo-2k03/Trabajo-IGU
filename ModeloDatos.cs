@@ -63,14 +63,14 @@ namespace Pactometro
                         //Creamos un nuevo diccionario para guardar los partidos, porque si se lo asignamos directamente le asignamos la referencia
                         //Y luego si lo borramos, se nos borraria todo.
 
-                        Dictionary<String, Partido> partidos = new();
+                        List< Partido> partidos = new();
 
                         
                         foreach (var v in partidosInfo)
                         {
                             
 
-                            partidos.Add(v.Key, new Partido(v.Key, v.Value, getRandomColor()));
+                            partidos.Add(new Partido(v.Key, v.Value, getRandomColor()));
                         }
 
                         //Creamos una clase de datos y la guardamos a la coleccion.
@@ -128,9 +128,9 @@ namespace Pactometro
             // Create and store ResultadosElecciones object for the last election
             if (fechaElecciones != null && partidosInfo.Count > 0)
             {
-                Dictionary<String, Partido> partidos = new();
+                List< Partido> partidos = new();
                 foreach (var v in partidosInfo)
-                    partidos.Add(v.Key, new Partido(v.Key, v.Value, getRandomColor()));
+                    partidos.Add(new Partido(v.Key, v.Value, getRandomColor()));
 
                 Eleccion resultados = new(tipoElecciones.ToString(), fechaElecciones, partidos, nombre);
                 ResultadosElectorales.Add(resultados);
@@ -140,15 +140,15 @@ namespace Pactometro
 
 
 
-        public void CreateNewData(string tipoEleccion, string fechaElectoral, string comunidad, Dictionary<string, Partido> partidos, int nEscaños)
+        public void CreateNewData(string tipoEleccion, string fechaElectoral, string comunidad, List< Partido> partidos, int nEscaños)
         {
 
 
-            Dictionary<string, Partido> infoPartidos = new();
+            List< Partido> infoPartidos = new();
 
             foreach (var i in partidos)
             {
-                infoPartidos.Add(i.Key, i.Value);
+                infoPartidos.Add(i);
             }
 
             string nombreelec;
@@ -166,7 +166,7 @@ namespace Pactometro
         }
 
 
-        public void UpdateData(string tipoEleccion,string fechaElectoral,string comunidad,Dictionary<string,Partido> partidos,int nEscaños,Eleccion eleccionAReemplazar)
+        public void UpdateData(string tipoEleccion,string fechaElectoral,string comunidad,List<Partido> partidos,int nEscaños,Eleccion eleccionAReemplazar)
         {
 
             // Buscamos el indice del modelo que tenemos que reemplazar.
@@ -175,11 +175,11 @@ namespace Pactometro
             //Si está en la lista.
             if (indexToReplace != -1)
             {
-                Dictionary<string, Partido> infoPartidos = new();
+                List< Partido> infoPartidos = new();
 
                 foreach (var i in partidos)
                 {
-                    infoPartidos.Add(i.Key, i.Value);
+                    infoPartidos.Add(i);
                 }
 
                 string nombreelec;

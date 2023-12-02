@@ -13,7 +13,7 @@ namespace Pactometro
         private string _nombre;
         private string _fechaElecciones;
         private int _mayoria;
-        private Dictionary<string, Partido> _partidos;
+        private List< Partido> _partidos;
         private int _numEscaños;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -91,7 +91,7 @@ namespace Pactometro
             }
         }
 
-        public Dictionary<string, Partido> Partidos
+        public List<Partido> Partidos
         {
             get { return _partidos; }
 
@@ -109,7 +109,7 @@ namespace Pactometro
         }
 
 
-        public Eleccion(string tipoElecciones, string fecha, Dictionary<string, Partido> partidos, string nombre, int nEscaños = 81)
+        public Eleccion(string tipoElecciones, string fecha, List<Partido> partidos, string nombre, int nEscaños = 81)
         {
 
             switch (tipoElecciones.ToUpper())

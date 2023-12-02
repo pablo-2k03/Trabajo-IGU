@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Pactometro"
         mc:Ignorable="d"
-        Title="Modificar datos electorales" Height="649" Width="800"
+        Title="Modificar datos electorales" Height="851" Width="800"
         MinHeight="800" MinWidth="800">
     <Window.Icon>
         <BitmapImage UriSource="pack://application:,,,/Pactometro;component/updata.ico"/>

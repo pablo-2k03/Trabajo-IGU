@@ -22,7 +22,7 @@
             <TextBlock  Margin="30 30 30 10" FontSize="15" FontWeight="Bold" FontStretch="Condensed" HorizontalAlignment="Center">
             Tipo Elección
             </TextBlock>
-            <ComboBox Margin="30 0 0 0" Width="184" HorizontalAlignment="Center" Name="tipoElecciones" SelectionChanged="TipoElecciones_SelectionChanged">
+            <ComboBox Margin="30 0 0 0" Width="184" HorizontalAlignment="Center" Name="_tipoElecciones" SelectionChanged="TipoElecciones_SelectionChanged">
                 <ComboBoxItem Name="generales" Content="Generales"/>
                 <ComboBoxItem Name="autonomicas" Selected="Autonomicas_Selected">Autonómicas</ComboBoxItem>
             </ComboBox>
@@ -30,7 +30,7 @@
             <TextBlock  Margin="30 30 30 10" FontSize="15" FontWeight="Bold" FontStretch="Condensed" HorizontalAlignment="Center">
             Fecha
             </TextBlock>
-            <Calendar HorizontalAlignment="Center" Margin="30 0 0 0" Width="184" Name="calendario"/>
+            <Calendar HorizontalAlignment="Center" Margin="30 0 0 0" Width="184" Name="_calendario"/>
             <TextBlock  Margin="30 30 30 10" FontSize="15" FontWeight="Bold" FontStretch="Condensed" HorizontalAlignment="Center">
             Partidos
             </TextBlock>
@@ -38,8 +38,8 @@
             <TextBox Name="nombre"  Margin="30 0 0 0"  Width="184" HorizontalAlignment="Center" GotFocus="FocusNombrePartido" LostFocus="SinFocusNombrePartido"/>
             <TextBox Name="votos"  Margin="30 0 0 0"  Width="184" HorizontalAlignment="Center" GotFocus="Votos_GotFocus" LostFocus="Votos_LostFocus"/>
             <Button Name="registerNewParty" Margin="30 10 0 0" Width="184" HorizontalAlignment="Center" Height="20" Content="Añadir nuevo partido" Click="RegisterNewParty_Click"/>
-            <ListBox Name="registroPartidos" Margin="30,10,0,0" Width="184" Height="100"/>
-            <Button Content="Guardar" Margin="30 30 0 0" Width="184" HorizontalAlignment="Center" Click="RegisterNewData"/>
+            <ListBox Name="registroPartidos_" Margin="30,10,0,0" Width="184" Height="100"/>
+            <Button Content="Guardar" Margin="30 30 0 0" Width="184" HorizontalAlignment="Center" Click="RegisterNewData" Name="_save"/>
         </StackPanel>
     </ScrollViewer>
 </Window>

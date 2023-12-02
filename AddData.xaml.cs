@@ -53,7 +53,7 @@ namespace Pactometro
         private void RegisterNewData(object sender, RoutedEventArgs e)
         {
             string electionType;
-            ComboBoxItem item = (ComboBoxItem)tipoElecciones.SelectedItem;
+            ComboBoxItem item = (ComboBoxItem)_tipoElecciones.SelectedItem;
 
             if (item != null)
             {
@@ -73,30 +73,29 @@ namespace Pactometro
                     }
 
                 }
-                if (calendario.SelectedDate.HasValue)
+                if (_calendario.SelectedDate.HasValue)
                 {
-                    string date = calendario.SelectedDate.Value.ToString();
+                    string date = _calendario.SelectedDate.Value.ToString();
 
                     //Eliminamos la hora de la fecha, porque el formato original es 02/11/23 00:00:00
                     string[] tokens = date.Split(" ");
                     date = tokens[0];
-                    if (registroPartidos.Items.Count > 0)
+                    if (registroPartidos_.Items.Count > 0)
                     {
 
                         //Creamos un diccionario y añadimos cargamos los datos
-                        Dictionary<String, Partido> Partidos = new();
+                        List<Partido> Partidos = new();
                         foreach (var partidoEntry in infoPartidos)
                         {
-                            string partidoName = partidoEntry.Key;
                             Partido partido = partidoEntry.Value;
-                            Partidos.Add(partidoName, partido);
+                            Partidos.Add( partido);
                         }
 
                         modeloUnico.CreateNewData(electionType, date, comunity, Partidos, nEscaños);
 
                         nombre.Clear();
                         votos.Clear();
-                        registroPartidos.Items.Clear();
+                        registroPartidos_.Items.Clear();
                         DataCreated(this,e);
                         MessageBox.Show("Datos añadidos correctamente.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                         this.Close();
@@ -130,7 +129,7 @@ namespace Pactometro
             string value = votos.Text;
             int votes;
             int numMaxEscaños = 0;
-            ComboBoxItem item = (ComboBoxItem)tipoElecciones.SelectedItem;
+            ComboBoxItem item = (ComboBoxItem)_tipoElecciones.SelectedItem;
 
             if (item != null)
             {
@@ -209,7 +208,7 @@ namespace Pactometro
         private void UpdateDataListBox()
         {
             // Limpiamos la lista para que no se dupliquen datos.
-            registroPartidos.Items.Clear();
+            registroPartidos_.Items.Clear();
 
             // Añadimos la info de los partidos a la lista.
             foreach (var partidoEntry in infoPartidos)
@@ -231,7 +230,7 @@ namespace Pactometro
                 };
 
                 // Añadimos al registro.
-                registroPartidos.Items.Add(textBlock);
+                registroPartidos_.Items.Add(textBlock);
 
             }
         }
@@ -299,7 +298,7 @@ namespace Pactometro
         private void TipoElecciones_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Si seleccionan elecciones generales, eliminamos el combobox de selector de comunidad y el textblock que añadimos anteriormente.
-            if (tipoElecciones.SelectedItem == generales)
+            if (_tipoElecciones.SelectedItem == generales)
             {
                 comunidad.Children.Clear();
                 nEscaños = 350;
@@ -328,7 +327,7 @@ namespace Pactometro
             else
             {
                 //Si son generales no se hace la comprobación del limite de escaños porque por defecto son 350.
-                if (tipoElecciones.Text.ToUpper() == "GENERALES")
+                if (_tipoElecciones.Text.ToUpper() == "GENERALES")
                 {
                     nEscaños = 350;
                     if (!Comprobar_Limite(nEscaños, infoPartidos))

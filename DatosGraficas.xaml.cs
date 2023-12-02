@@ -31,7 +31,7 @@ namespace Pactometro
         //Lista de elecciones que se va a pasar como parametro para graficar el comparativo.
         private List<Eleccion> eleccionesACoomparar;
 
-        //Lista de elecciones que se va a passar como parametro para graficar los datos de una eleccion.
+        //Lista de elecciones que se va a pasar como parametro para graficar los datos de una eleccion.
         private List<Eleccion> eleccionesAGraficar;
         public DatosGraficas()
         {
@@ -108,70 +108,95 @@ namespace Pactometro
                     };
 
 
-                    //Vamos a crear otro MenuItem para comparar
+                    // Vamos a crear otro MenuItem para comparar
                     MenuItem compare = new MenuItem();
                     compare.Header = "Comparar";
                     compare.Click += (compareSender, compareEventArgs) =>
                     {
-                        
-                        //Si se selecciona para comparar, no se pueden añadir datos.
+                        // Si se selecciona para comparar, no se pueden añadir datos.
                         _newData.IsEnabled = false;
-                        //TODO: Cambiar UX 
-                        Eleccion eleccionAComparar = (Eleccion)resultadosLV.SelectedItem;
-                        eleccionesACoomparar.Add(eleccionAComparar);
 
-                        // Cambiarmos el color de fondo solo si se hace clic en "Comparar" en el ContextMenu
+
+                        List<string> tipos = new(); int k = 0;
+                        // Si el elemento del click es un menuItem, iteramos los items seleccionados y los almacenamos en una lista.
                         if (compareEventArgs.OriginalSource is MenuItem)
                         {
-                            ListViewItem? selectedItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(resultadosLV.SelectedItem) as ListViewItem;
-
-                            if (selectedItem != null)
+                            foreach (Eleccion selectedItem in resultadosLV.SelectedItems)
                             {
-                                selectedItem.Background = System.Windows.Media.Brushes.LightGreen; 
-                            }
-                        }
-                        // Obtener la subcadena "generales" o "autonomicas" del nombre de la elección
-                        string tipoEleccionElegida = GetTipoEleccion(eleccionAComparar.Nombre);
-                        string comunidadElegida = string.Empty;
-                        Boolean sonAutonomicas = false;
-
-                        if (tipoEleccionElegida.Contains("autonomicas"))
-                        {
-                            comunidadElegida = GetComunidad(eleccionAComparar.Nombre);
-                            sonAutonomicas = true;
-                        }
-                        foreach (Eleccion item in resultadosLV.Items)
-                        {
-                            if (sonAutonomicas)
-                            {
-                                if (GetComunidad(item.Nombre) != comunidadElegida)
-                                {
-                                    // Deshabilitar el elemento y ponerlo en gris
-                                    ListViewItem? listViewItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
-
-                                    if (listViewItem != null)
+                                // Add selected items to the list
+                                eleccionesACoomparar.Add(selectedItem);
+                                tipos.Add(GetTipoEleccion(selectedItem.Nombre));
+                                foreach(string t in tipos)
+                                { 
+                                    if (!t.Equals(tipos[k]))
                                     {
-                                        listViewItem.IsEnabled = false;
-                                        listViewItem.Background = System.Windows.Media.Brushes.LightGray;
-                                    }
+                                        MessageBox.Show("Solo se pueden comparar elecciones del mismo tipo.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                                        tipos.Clear();
+                                        eleccionesACoomparar.Clear();
+                                        foreach(var i in resultadosLV.Items)
+                                        {
+                                            ListViewItem? listViewItem2 = resultadosLV.ItemContainerGenerator.ContainerFromItem(i) as ListViewItem;
+                                            if (listViewItem2 != null)
+                                            {
+                                                listViewItem2.Background = System.Windows.Media.Brushes.Transparent;
+                                            }
+                                        }
+                                        return;
+                                    }                           
                                 }
-                            }
-                            else
-                            {
-                                if (GetTipoEleccion(item.Nombre) != tipoEleccionElegida)
+                                k++;
+                                // Cambiarmos el color de fondo solo si se hace clic en "Comparar" en el ContextMenu
+                                ListViewItem? listViewItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(selectedItem) as ListViewItem;
+                                if (listViewItem != null)
                                 {
-                                    // Deshabilitar el elemento y ponerlo en gris
-                                    ListViewItem? listViewItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
-
-                                    if (listViewItem != null)
-                                    {
-                                        listViewItem.IsEnabled = false;
-                                        listViewItem.Background = System.Windows.Media.Brushes.LightGray;
-                                    }
+                                    listViewItem.Background = System.Windows.Media.Brushes.LightGreen;
                                 }
                             }
                         }
 
+                        // Logica de controlar las elecciones que se pueden seleccionar. 
+                        foreach (Eleccion eleccionAComparar in eleccionesACoomparar)
+                        {
+                            string tipoEleccionElegida = GetTipoEleccion(eleccionAComparar.Nombre);
+                            string comunidadElegida = string.Empty;
+                            bool sonAutonomicas = false;
+
+                            if (tipoEleccionElegida.Contains("autonomicas"))
+                            {
+                                comunidadElegida = GetComunidad(eleccionAComparar.Nombre);
+                                sonAutonomicas = true;
+                            }
+
+                            foreach (Eleccion item in resultadosLV.Items)
+                            {
+                                if (sonAutonomicas)
+                                {
+                                    if (GetComunidad(item.Nombre) != comunidadElegida)
+                                    {
+                                        // Deshabilitar el elemento y ponerlo en gris
+                                        ListViewItem? listViewItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
+                                        if (listViewItem != null)
+                                        {
+                                            listViewItem.IsEnabled = false;
+                                            listViewItem.Background = System.Windows.Media.Brushes.LightGray;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (GetTipoEleccion(item.Nombre) != tipoEleccionElegida)
+                                    {
+                                        // Deshabilitar el elemento y ponerlo en gris
+                                        ListViewItem? listViewItem = resultadosLV.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
+                                        if (listViewItem != null)
+                                        {
+                                            listViewItem.IsEnabled = false;
+                                            listViewItem.Background = System.Windows.Media.Brushes.LightGray;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     };
 
                     // Añadimos los items del menu al contexto del menu.
@@ -184,11 +209,11 @@ namespace Pactometro
                 }
                 Eleccion selectedElection = (Eleccion)resultadosLV.SelectedItem;
 
-                Dictionary<string, Partido> partyData = selectedElection.Partidos;
+                List<Partido> partyData = selectedElection.Partidos;
 
                 // Gracias al metodo Select de los diccionarios podemos realizar un mapeo de los datos de forma muy sencilla.
                 // Lo bindeamos con el xaml y asociamos el Key con el nombre del partido y el Value con los escaños generando una lista.
-                var partyDataCollection = partyData.Select(pair => new { Key = pair.Key, Value = pair.Value.Votos }).ToList();
+                var partyDataCollection = partyData.Select(pair => new { Key = pair.Nombre, Value = pair.Votos }).ToList();
 
                 resultadosLV2.ItemsSource = partyDataCollection;
 
@@ -239,13 +264,9 @@ namespace Pactometro
             {
                 return "generales";
             }
-            else if (nombreEleccion.ToLower().Contains("autonomicas"))
-            {
-                return "autonomicas";
-            }
             else
             {
-                return "otro";
+                return "autonomicas";
             }
         }
 

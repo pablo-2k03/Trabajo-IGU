@@ -32,7 +32,7 @@ namespace Pactometro
 
         private ModeloDatos modeloUnico;
         private Eleccion eleccionAReemplazar;
-
+        private List<Partido> partyDataCollection;
         public UpdateData()
         {
             InitializeComponent();
@@ -62,7 +62,7 @@ namespace Pactometro
             Murcia
         }
 
-        public void displayData(string nombre,string fecha,Dictionary<string,Partido> partidos,Eleccion eleccionAReemplazar,ModeloDatos modeloUnico)
+        public void displayData(string nombre, string fecha, List<Partido> partidos, Eleccion eleccionAReemplazar, ModeloDatos modeloUnico)
         {
 
             this.modeloUnico = modeloUnico;
@@ -73,7 +73,7 @@ namespace Pactometro
 
             string[] tokens = nombre.Split(" ");
 
-            if(tokens.Length > 3)
+            if (tokens.Length > 3)
             {
                 tipoEleccion = tokens[0].ToUpper();
                 comunidad = tokens[3].ToUpper();
@@ -85,22 +85,35 @@ namespace Pactometro
 
             elecActual.Text = tipoEleccion;
             fechaActual.Text = fecha;
-            var partyDataCollection = new List<string>();
+            partyDataCollection = new List<Partido>();
 
-            foreach(var partido in partidos)
+            foreach (var partido in partidos)
             {
-                partyDataCollection.Add(partido.Key.ToString()+","+partido.Value.Votos);
+                partyDataCollection.Add(partido);
             }
 
-
             partidosAct.ItemsSource = partyDataCollection;
+            registroPartidos.ItemsSource = partyDataCollection;
+
+            if (tipoEleccion == "GENERALES")
+            {
+                tipoElecciones.SelectedItem = tipoElecciones.Items[0];
+            }
+            else
+            {
+                tipoElecciones.SelectedItem = tipoElecciones.Items[1];
+                electorEscaños.Text = eleccionAReemplazar.NumEscaños.ToString();
+                electorComunidad.SelectedItem = electorComunidad.Items[GetComunidad(eleccionAReemplazar.Nombre)];
+            }
+            fechaNueva.SelectedDate = DateTime.ParseExact(fechaActual.Text, "dd/M/yyyy", CultureInfo.InvariantCulture);
+            fechaNueva.DisplayDate = (DateTime)fechaNueva.SelectedDate;
 
             return;
 
         }
         private void changedState(object? sender, EventArgs e)
         {
-            if(WindowState == WindowState.Maximized)
+            if (WindowState == WindowState.Maximized)
             {
                 elecActual.Width = 1790;
                 fechaActual.Width = 1790;
@@ -140,20 +153,28 @@ namespace Pactometro
                     {
 
                         //Creamos un diccionario y añadimos cargamos los datos
-                        Dictionary<String, Partido> Partidos = new();
-                        foreach (var partidoEntry in infoPartidos)
+                        List<Partido> Partidos = new();
+
+                        foreach(var p in partyDataCollection)
                         {
-                            string partidoName = partidoEntry.Key;
-                            Partido partido = partidoEntry.Value;
-                            Partidos.Add(partidoName, partido);
+                            Partidos.Add(p);
                         }
 
-                        modeloUnico.UpdateData(electionType,date,comunity,Partidos,nEscaños, eleccionAReemplazar);
+                        foreach (var partidoEntry in infoPartidos)
+                        {
+                            if(Partidos.Contains(partidoEntry.Value))
+                            {
+                                int indexOf = Partidos.IndexOf(partidoEntry.Value);
+                                Partidos[indexOf] = partidoEntry.Value;
+                            }
+                        }
+
+                        modeloUnico.UpdateData(electionType, date, comunity, Partidos, nEscaños, eleccionAReemplazar);
 
                         nombre.Clear();
                         votos.Clear();
 
-                        registroPartidos.Items.Clear();
+                        registroPartidos.ItemsSource = null;
                         MessageBox.Show("Datos actualizados correctamente.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                         this.Close();
                         return;
@@ -182,9 +203,6 @@ namespace Pactometro
             //Cuando den click para registrar la info del partido, el focus se lo ponemos al nombre de un nuevo partido para optimizar UX.
             nombre.Focus();
 
-
-
-
             string key = nombre.Text;
             string value = votos.Text;
             int votes;
@@ -212,7 +230,7 @@ namespace Pactometro
                 {
                     votes = int.Parse(value);
 
-                    if(votes == 0 ) { MessageBox.Show("El numero de escaños no puede ser 0.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);  return; }
+                    if (votes == 0) { MessageBox.Show("El numero de escaños no puede ser 0.", "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
 
                     if (votes > numMaxEscaños)
                     {
@@ -223,7 +241,7 @@ namespace Pactometro
                     {
                         return;
                     }
-                    
+
 
                 }
                 catch (Exception)
@@ -251,6 +269,7 @@ namespace Pactometro
                         if (party != null)
                         {
                             infoPartidos[party.Nombre] = party;
+                            partyDataCollection.Add(party);
                             UpdateDataListBox();
                         }
 
@@ -273,8 +292,6 @@ namespace Pactometro
 
         private void UpdateDataListBox()
         {
-            // Limpiamos la lista para que no se dupliquen datos.
-            registroPartidos.Items.Clear();
 
             // Añadimos la info de los partidos a la lista.
             foreach (var partidoEntry in infoPartidos)
@@ -295,9 +312,14 @@ namespace Pactometro
                     Text = $"{partidoName}, {partidoVotes}, {color}"
                 };
 
-                // Añadimos al registro.
-                registroPartidos.Items.Add(textBlock);
-
+                foreach(Partido p in registroPartidos.Items)
+                {
+                    if (p.Nombre.Equals(partidoName.ToUpper())) { 
+                        p.Votos = partidoVotes;
+                        break;
+                    }
+                }
+                registroPartidos.Items.Refresh();
             }
         }
 
@@ -321,7 +343,7 @@ namespace Pactometro
             {
                 Name = "electorComunidad",
                 Width = 177,
-                HorizontalAlignment= HorizontalAlignment.Left,
+                HorizontalAlignment = HorizontalAlignment.Left,
             };
 
             foreach (AutonomousCommunity community in Enum.GetValues(typeof(AutonomousCommunity)))
@@ -347,7 +369,7 @@ namespace Pactometro
                 HorizontalAlignment = HorizontalAlignment.Left
             };
 
-            
+
 
             //Limpiamos el stackpanel en caso de q hubiera datos y añadimos el texto de COMUNIDAD y el combobox.
             comunidad.Children.Clear(); // Clear previous content
@@ -365,7 +387,11 @@ namespace Pactometro
                 comunidad.Children.Clear();
                 nEscaños = 350;
             }
-
+            if(IsLoaded)
+            {
+                partyDataCollection.Clear();
+            }
+            registroPartidos.Items.Refresh();
             //Reestablecemos el boton de añadir partidos porque el numero de escaños puede haber variado.
             reestablecerLimite();
 
@@ -388,11 +414,10 @@ namespace Pactometro
             }
             else
             {
-                //Si son generales no se hace la comprobación del limite de escaños porque por defecto son 350.
-                if (tipoElecciones.Text.ToUpper() == "GENERALES") 
+                if (tipoElecciones.Text.ToUpper() == "GENERALES")
                 {
-                    nEscaños = 350;  
-                    if(!Comprobar_Limite(nEscaños,infoPartidos))
+                    nEscaños = 350;
+                    if (!Comprobar_Limite(nEscaños, infoPartidos))
                     {
                         establecerLimite();
                     }
@@ -401,7 +426,7 @@ namespace Pactometro
                         reestablecerLimite();
                     }
 
-                    return; 
+                    return;
                 }
 
                 try
@@ -449,7 +474,7 @@ namespace Pactometro
             }
         }
 
-        private Boolean Comprobar_Limite(int nEscaños,Dictionary<string,Partido> infoPartidos)
+        private Boolean Comprobar_Limite(int nEscaños, Dictionary<string, Partido> infoPartidos)
         {
             int suma = 0;
             foreach (var partido in infoPartidos)
@@ -469,7 +494,7 @@ namespace Pactometro
             catch (Exception)
             {
                 MessageBox.Show("El numero de escaños totales no puede superar el máximo establecido: " + nEscaños, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                
+
                 return false;
             }
             return true;
@@ -489,8 +514,38 @@ namespace Pactometro
             registerNewParty.Foreground = Brushes.Black;
         }
 
+
+        private int GetComunidad(string Nombre)
+        {
+            string[] tokens = Nombre.Split(" ");
+            string comunidad = tokens[3];
+            if (comunidad.Equals("CyL")) { return 4; }
+            // Assuming the enumeration values are named exactly as the communities in the string
+            if (Enum.TryParse<AutonomousCommunity>(comunidad, out var communityEnum))
+            {
+                ComboBoxItem comboBoxItem = new ComboBoxItem();
+                comboBoxItem.Content = communityEnum; // Set the content to the enum value
+                int index = 0;
+                foreach(AutonomousCommunity c in Enum.GetValues(typeof(AutonomousCommunity)))
+                {
+                    if (c.ToString().Equals(comunidad))
+                    {
+                        return index;
+                    }
+                    index++;
+                }
+                return 0;
+            }
+            else
+            {
+                MessageBox.Show("Error en la seleccion de comunidad: " + nEscaños, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return 0;
+            }
+
+        }
+
     }
 
-    
+
 
 }

@@ -5,7 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Pactometro"
         mc:Ignorable="d"
-        Title="Coalicion" Height="450" Width="800">
+        Title="Coalicion" Height="450" Width="800"
+        MinHeight="450"
+        MinWidth="800">
+    <Window.Icon>
+        <!-- La UriSource la vamos a determinar con una composición de Uris-->
+        <!-- new Uri(new Uri("pack://application:,,,/"),new Uri("pack:/Pactometro;component/dg.ico")) -->
+        <BitmapImage UriSource="pack://application:,,,/Pactometro;component/alianzas.ico"/>
+    </Window.Icon>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -24,7 +31,8 @@
                   SelectionMode="Single"
                   PreviewMouseMove="infoPartidos_MouseMove"
                   PreviewMouseLeftButtonDown="infoPartidos_PreviewMouseLeftButtonDown"
-                  AllowDrop="True">
+                  AllowDrop="True"
+                  Margin="10 10 60 0">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="PARTIDO" Width="auto" DisplayMemberBinding="{Binding Nombre}"/>
@@ -32,11 +40,12 @@
                 </GridView>
             </ListView.View>
         </ListView>
-
+        <Button Content="=>" Grid.Row="1" Grid.ColumnSpan="2" Height="50" Click="Button_Click" Width="100" HorizontalAlignment="Center"/>
         <ListView Grid.Row="1" Grid.Column="1" Name="partidosCoalicion" 
                   ItemsSource="{Binding PartidosCoalicion}"
                   AllowDrop="True"
-                  Drop="partidosCoalicion_Drop">
+                  Drop="partidosCoalicion_Drop"
+                  Margin="60 10 10 0 ">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="PARTIDO" DisplayMemberBinding="{Binding Nombre}" Width="auto"/>
