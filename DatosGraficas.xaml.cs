@@ -40,6 +40,7 @@ namespace Pactometro
             modeloUnico = Utils.DataModelSingleton.GetInstance();
             eleccionesACoomparar = new List<Eleccion>();
             eleccionesAGraficar = new List<Eleccion>();
+            modeloUnico.ResultadosElectorales.CollectionChanged += OnCollectionChanged;
             resultadosLV.ItemsSource = modeloUnico.ResultadosElectorales;
 
             //Eventos de la propia ventana
@@ -90,7 +91,7 @@ namespace Pactometro
                         upd.displayData(eleccionAReemplazar.Nombre, eleccionAReemplazar.FechaElecciones, 
                                         eleccionAReemplazar.Partidos,eleccionAReemplazar, modeloUnico);
                         upd.ShowDialog();
-                        
+
                     };
 
                     // Para eliminar un elemento, simplemente cogemos nuestro modelo unico y lo eliminamos de la lista de resultadosElectorales
@@ -299,6 +300,29 @@ namespace Pactometro
             RestoreBackgroundColors(resultadosLV);
             _newData.IsEnabled = true;
             seleccionEliminada(this, e);
+        }
+
+        private void OnCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            // Si se ha modificado un elemento de la colección, lo cambiamos en las tablas.
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace ||
+                e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            {
+                // Obtén la información de la elección modificada de la colección newItems.
+                var modifiedElection = e.NewItems?.Cast<Eleccion>().FirstOrDefault();
+
+                if (modifiedElection != null)
+                {
+                    List<Partido> partyData = modifiedElection.Partidos;
+
+                    // Gracias al metodo Select de los diccionarios podemos realizar un mapeo de los datos de forma muy sencilla.
+                    // Lo bindeamos con el xaml y asociamos el Key con el nombre del partido y el Value con los escaños generando una lista.
+                    var partyDataCollection = partyData.Select(pair => new { Key = pair.Nombre, Value = pair.Votos }).ToList();
+
+                    resultadosLV2.ItemsSource = partyDataCollection;
+                }
+
+            }
         }
     }
         

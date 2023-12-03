@@ -5,15 +5,10 @@ using System.Drawing;
 
 namespace Pactometro
 {
-    public class Partido : INotifyPropertyChanged
+    public class Partido
     {
 
-        public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged(string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
 
         public string Nombre { get; set; }
@@ -33,10 +28,7 @@ namespace Pactometro
         }
 
         public override string ToString()
-        {
-
-
-            // Return a string representation containing relevant information.
+        {      
             return $"{Nombre}, {Votos}";
         }
     }

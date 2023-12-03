@@ -47,6 +47,10 @@ namespace Pactometro
         public AddData( )
         {
             InitializeComponent();
+            if (_tipoElecciones.SelectedItem == null) {
+                nombre.IsEnabled = false;
+                votos.IsEnabled = false;
+            }
         }
 
 
@@ -301,14 +305,22 @@ namespace Pactometro
             if (_tipoElecciones.SelectedItem == generales)
             {
                 comunidad.Children.Clear();
-                nEscaños = 350;
+                nEscaños = 350;    
             }
+            else
+            {
+                nEscaños = 0;
+            }
+            nombre.IsEnabled = true;
+            votos.IsEnabled = true;
 
             //Reestablecemos el boton de añadir partidos porque el numero de escaños puede haber variado.
             reestablecerLimite();
 
             //Limpiamos los partidos.
             infoPartidos.Clear();
+
+            registroPartidos_.Items.Clear();
         }
 
         private void LimpiaCampos()

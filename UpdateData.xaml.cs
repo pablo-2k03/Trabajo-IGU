@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -155,17 +156,18 @@ namespace Pactometro
                         //Creamos un diccionario y añadimos cargamos los datos
                         List<Partido> Partidos = new();
 
-                        foreach(var p in partyDataCollection)
-                        {
-                            Partidos.Add(p);
-                        }
+                        // Agregar todos los partidos actuales
+                        Partidos.AddRange(partyDataCollection);
 
-                        foreach (var partidoEntry in infoPartidos)
+                        foreach (var i in infoPartidos)
                         {
-                            if(Partidos.Contains(partidoEntry.Value))
+                            // Buscar el partido en Partidos por nombre
+                            var partidoExistente = Partidos.FirstOrDefault(p => p.Nombre.Equals(i.Value.Nombre));
+
+                            if (partidoExistente != null)
                             {
-                                int indexOf = Partidos.IndexOf(partidoEntry.Value);
-                                Partidos[indexOf] = partidoEntry.Value;
+                                // Actualizar los votos si el partido ya existe
+                                partidoExistente.Votos = i.Value.Votos;
                             }
                         }
 
@@ -269,7 +271,18 @@ namespace Pactometro
                         if (party != null)
                         {
                             infoPartidos[party.Nombre] = party;
-                            partyDataCollection.Add(party);
+
+                            var existingParty = partyDataCollection.FirstOrDefault(p => p.Nombre.ToUpper().Equals(nombre.ToUpper()));
+
+                            if (existingParty == null)
+                            {
+                                partyDataCollection.Add(party);
+                            }
+                            else
+                            {
+                                existingParty.Votos = escaños;
+                            }
+
                             UpdateDataListBox();
                         }
 
@@ -387,11 +400,16 @@ namespace Pactometro
                 comunidad.Children.Clear();
                 nEscaños = 350;
             }
+
+            //Si la pantalla está cargada y el usuario cambia el tipo de elecciones, los partidos se borran.
             if(IsLoaded)
             {
                 partyDataCollection.Clear();
             }
+
+            //La listbox se recarga.
             registroPartidos.Items.Refresh();
+
             //Reestablecemos el boton de añadir partidos porque el numero de escaños puede haber variado.
             reestablecerLimite();
 
