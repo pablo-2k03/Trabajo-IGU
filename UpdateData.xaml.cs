@@ -147,31 +147,18 @@ namespace Pactometro
                 if (fechaNueva.SelectedDate.HasValue)
                 {
                     string date = fechaNueva.SelectedDate.Value.ToString();
-                    //Eliminamos la hora de la fecha, porque el formato original es 02/11/23 00:00:00
-                    string[] tokens = date.Split(" ");
-                    date = tokens[0];
+
+                    date = this.modeloUnico.getDateFormatted(date);
+
                     if (registroPartidos.Items.Count > 0)
                     {
-
-                        //Creamos un diccionario y añadimos cargamos los datos
-                        List<Partido> Partidos = new();
-
+                        List<Partido> Partidos = new List<Partido>();
                         // Agregar todos los partidos actuales
                         Partidos.AddRange(partyDataCollection);
 
-                        foreach (var i in infoPartidos)
-                        {
-                            // Buscar el partido en Partidos por nombre
-                            var partidoExistente = Partidos.FirstOrDefault(p => p.Nombre.Equals(i.Value.Nombre));
+                        Partidos = this.p.GetPartidos(infoPartidos,Partidos);
 
-                            if (partidoExistente != null)
-                            {
-                                // Actualizar los votos si el partido ya existe
-                                partidoExistente.Votos = i.Value.Votos;
-                            }
-                        }
-
-                        modeloUnico.UpdateData(electionType, date, comunity, Partidos, nEscaños, eleccionAReemplazar);
+                        modeloUnico.UpdateData(electionType, date, comunity, Partidos, nEscaños,eleccionAReemplazar);
 
                         nombre.Clear();
                         votos.Clear();
@@ -215,83 +202,26 @@ namespace Pactometro
             {
                 string electionType = item.Content.ToString().ToUpper();
 
-                if (electionType.ToUpper() == "GENERALES")
-                {
-                    numMaxEscaños = 350;
-                }
-                else
-                {
-                    numMaxEscaños = this.nEscaños;
-                }
+                numMaxEscaños = this.modeloUnico.getEscaños(electionType.ToUpper(), this.nEscaños);
+       
             }
             // Primera validación: Que hayan introducido un nombre, aunque posteriormente se va a revalidar por si introducen una string no valida (numero)
             if (!string.IsNullOrWhiteSpace(key))
             {
 
-                try
-                {
-                    votes = int.Parse(value);
+                //Comprobamos los votos actuales y luego los nuevos.
+                votes = this.modeloUnico.checkVotes(value,numMaxEscaños);
 
-                    if (votes == 0) { MessageBox.Show("El numero de escaños no puede ser 0.", "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
-
-                    if (votes > numMaxEscaños)
-                    {
-                        throw new Exception();
-                    }
-
-                    if (!Comprobar_Limite(nEscaños, infoPartidos))
-                    {
-                        return;
-                    }
-
-
-                }
-                catch (Exception)
-                {
-                    votos.Clear();
-                    MessageBox.Show("El numero de escaños no es valido.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (!this.modeloUnico.checkSumaVotosActualizar(partyDataCollection, value, key, votes, numMaxEscaños)){
                     return;
                 }
-                //Segunda validación: Comprobamos que el nombre sea una string valida y no un numero
-                if (!int.TryParse(key, out int res) && !double.TryParse(key, out double res2))
+
+                infoPartidos = this.modeloUnico.validateUpdateData(key, value, infoPartidos, partyDataCollection);
+                if (infoPartidos != null)
                 {
-
-                    //Dejamos al usuario la elección libre del color.
-                    var colorDialog = new System.Windows.Forms.ColorDialog();
-                    if (colorDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                    {
-                        System.Drawing.Color selectedColor = colorDialog.Color;
-
-                        //Creamos un partido.
-                        string nombre = key;
-                        int escaños = int.Parse(value);
-
-                        Partido party = p.crearPartido(nombre, escaños, selectedColor);
-
-                        if (party != null)
-                        {
-                            infoPartidos[party.Nombre] = party;
-
-                            var existingParty = partyDataCollection.FirstOrDefault(p => p.Nombre.ToUpper().Equals(nombre.ToUpper()));
-
-                            if (existingParty == null)
-                            {
-                                partyDataCollection.Add(party);
-                            }
-                            else
-                            {
-                                existingParty.Votos = escaños;
-                            }
-
-                            UpdateDataListBox();
-                        }
-
-                    }
+                    UpdateDataListBox();
                 }
-                else
-                {
-                    MessageBox.Show("El nombre del partido no es válido.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+
 
             }
             else
@@ -313,17 +243,6 @@ namespace Pactometro
                 // Obtenemos la info de los partidos para mostrarla.
                 string partidoName = partidoEntry.Key;
                 int partidoVotes = partidoEntry.Value.Votos;
-                System.Drawing.Color partidoColor = partidoEntry.Value.Color;
-
-                //Separamos en tokens para obtener solo el color 
-                string[] tokens = partidoColor.ToString().Split(" ");
-                string color = tokens[1];
-
-                // Creamos el bloque de texto y lo formateamos.
-                TextBlock textBlock = new()
-                {
-                    Text = $"{partidoName}, {partidoVotes}, {color}"
-                };
 
                 foreach(Partido p in registroPartidos.Items)
                 {
@@ -528,7 +447,7 @@ namespace Pactometro
         private void reestablecerLimite()
         {
             registerNewParty.IsEnabled = true;
-            registerNewParty.Content = "Añadir nuevo partido";
+            registerNewParty.Content = "Modificar partido";
             registerNewParty.Foreground = Brushes.Black;
         }
 
@@ -562,6 +481,7 @@ namespace Pactometro
 
         }
 
+        
     }
 
 

@@ -23,11 +23,14 @@
         <!-- El menu es un desplegable para poder añadir datos, cargar unos por defecto y más.-->
         <Menu Background="White">
             <MenuItem Header="Opciones" Background="LightGray">
-                <MenuItem Header="_Añadir Datos" Name="_newData" Click="AddElectionData"/>
-                <MenuItem Header="Reestablecer Datos Prueba" Name="_load" Click="LoadDataTests"/>
+                <MenuItem Header="_Importar Elección de Fichero" Name="_newDataFile" Click="_newDataFile_Click"></MenuItem>
+                <MenuItem Header="Importar Elecciones de Fichero" Name="_importFromFile" Click="_importFromFile_Click"></MenuItem>
+                <MenuItem Header="Exportar Elecciones a Fichero" Name="_saveAll" Click="_saveAll_Click"></MenuItem>
             </MenuItem>
             <MenuItem Header="Elecciones" Background="LightGray">
+                <MenuItem Header="_Añadir Elección" Name="_newData" Click="AddElectionData"/>
                 <MenuItem Header="Comparar Elecciones" Name="_compare" Click="_compare_Click"/>
+                <MenuItem Header="Reestablecer Datos Prueba" Name="_load" Click="LoadDataTests"/>
                 <MenuItem Header="Eliminar selección" Name="_deleteSelection" Click="_deleteSelection_Click"/>
             </MenuItem>
         </Menu>

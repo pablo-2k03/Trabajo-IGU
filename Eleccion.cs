@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-
+using System.Text;
 
 namespace Pactometro
 {
@@ -129,6 +129,20 @@ namespace Pactometro
             _fechaElecciones = fecha;
             _partidos = partidos;
             _nombre = nombre;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"Nombre: {Nombre},\nFecha: {FechaElecciones},\nMayoria:  {Mayoria},\nEscaños:  {NumEscaños} escaños,\n");
+            sb.Append("Partidos,");
+            foreach(var i in  _partidos)
+            {
+                sb.Append($"\n{i.Nombre} {i.Votos} [A={i.Color.A}, R={i.Color.R}, G={i.Color.G}, B={i.Color.B}],");
+            }
+            sb.Append("\n.\n");
+            return sb.ToString();
+        
         }
     }
 }

@@ -81,25 +81,19 @@ namespace Pactometro
                 {
                     string date = _calendario.SelectedDate.Value.ToString();
 
-                    //Eliminamos la hora de la fecha, porque el formato original es 02/11/23 00:00:00
-                    string[] tokens = date.Split(" ");
-                    date = tokens[0];
+                    date = this.modeloUnico.getDateFormatted(date);
+
                     if (registroPartidos_.Items.Count > 0)
                     {
 
-                        //Creamos un diccionario y añadimos cargamos los datos
-                        List<Partido> Partidos = new();
-                        foreach (var partidoEntry in infoPartidos)
-                        {
-                            Partido partido = partidoEntry.Value;
-                            Partidos.Add( partido);
-                        }
+                        List<Partido> Partidos = this.p.GetPartidosA(infoPartidos);
 
                         modeloUnico.CreateNewData(electionType, date, comunity, Partidos, nEscaños);
 
                         nombre.Clear();
                         votos.Clear();
                         registroPartidos_.Items.Clear();
+
                         DataCreated(this,e);
                         MessageBox.Show("Datos añadidos correctamente.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                         this.Close();
@@ -131,7 +125,6 @@ namespace Pactometro
 
             string key = nombre.Text;
             string value = votos.Text;
-            int votes;
             int numMaxEscaños = 0;
             ComboBoxItem item = (ComboBoxItem)_tipoElecciones.SelectedItem;
 
@@ -139,70 +132,15 @@ namespace Pactometro
             {
                 string electionType = item.Content.ToString().ToUpper();
 
-                if (electionType.ToUpper() == "GENERALES")
-                {
-                    numMaxEscaños = 350;
-                }
-                else
-                {
-                    numMaxEscaños = this.nEscaños;
-                }
+                numMaxEscaños = this.modeloUnico.getEscaños(electionType.ToUpper(),this.nEscaños);
+                
             }
-            // Primera validación: Que hayan introducido un nombre, aunque posteriormente se va a revalidar por si introducen una string no valida (numero)
-            if (!string.IsNullOrWhiteSpace(key))
+
+            infoPartidos = this.modeloUnico.validateData(key, value, numMaxEscaños, nEscaños, infoPartidos,int.Parse(votos.Text));
+
+            if(infoPartidos != null)
             {
-
-                try
-                {
-                    votes = int.Parse(value);
-                    if (votes > numMaxEscaños)
-                    {
-                        throw new Exception();
-                    }
-
-                    if (!Comprobar_Limite(nEscaños, infoPartidos))
-                    {
-                        return;
-                    }
-
-
-                }
-                catch (Exception)
-                {
-                    votos.Clear();
-                    MessageBox.Show("El numero de escaños no es valido.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-                //Segunda validación: Comprobamos que el nombre sea una string valida y no un numero
-                if (!int.TryParse(key, out int res) && !double.TryParse(key, out double res2))
-                {
-                    var colorDialog = new System.Windows.Forms.ColorDialog();
-                    if (colorDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                    {
-                        System.Drawing.Color selectedColor = colorDialog.Color;
-
-                        string nombre = key;
-                        int escaños = int.Parse(value);
-
-                        Partido party = p.crearPartido(nombre,escaños,selectedColor);
-
-                        if (party != null)
-                        {
-                            infoPartidos[party.Nombre] = party;
-                            UpdateDataListBox();
-                        }
-
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("El nombre del partido no es válido.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-
-            }
-            else
-            {
-                MessageBox.Show("No ha introducido un nombre para el partido.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                UpdateDataListBox();
             }
 
             // Limpiamos los campos de entrada.
@@ -214,27 +152,16 @@ namespace Pactometro
             // Limpiamos la lista para que no se dupliquen datos.
             registroPartidos_.Items.Clear();
 
+
+            
             // Añadimos la info de los partidos a la lista.
             foreach (var partidoEntry in infoPartidos)
             {
-
-                // Obtenemos la info de los partidos para mostrarla.
-                string partidoName = partidoEntry.Key;
-                int partidoVotes = partidoEntry.Value.Votos;
-                System.Drawing.Color partidoColor = partidoEntry.Value.Color;
-
-                //Separamos en tokens para obtener solo el color 
-                string[] tokens = partidoColor.ToString().Split(" ");
-                string color = tokens[1];
-
-                // Creamos el bloque de texto y lo formateamos.
-                TextBlock textBlock = new()
-                {
-                    Text = $"{partidoName}, {partidoVotes}, {color}"
-                };
+   
+                TextBlock tb = this.p.formatPartyData(partidoEntry);                
 
                 // Añadimos al registro.
-                registroPartidos_.Items.Add(textBlock);
+                registroPartidos_.Items.Add(tb);
 
             }
         }
@@ -342,7 +269,9 @@ namespace Pactometro
                 if (_tipoElecciones.Text.ToUpper() == "GENERALES")
                 {
                     nEscaños = 350;
-                    if (!Comprobar_Limite(nEscaños, infoPartidos))
+                    int res = this.modeloUnico.checkVotes(votos.Text, nEscaños);
+                    if (res == -1) { MessageBox.Show("Introduce un numero de escaños valido (un numero entero).", "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
+                    if (!this.modeloUnico.Comprobar_Limite(nEscaños, infoPartidos,res))
                     {
                         establecerLimite();
                     }
@@ -354,24 +283,21 @@ namespace Pactometro
                     return;
                 }
 
-                try
-                {
-                    nEscaños = int.Parse(electorEscaños.Text);
+                nEscaños = this.modeloUnico.checkVotes(electorEscaños.Text,nEscaños);
+                if (nEscaños == -1) { MessageBox.Show("Introduce un numero de escaños limite valido (un numero entero).", "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
 
-                    if (!Comprobar_Limite(nEscaños, infoPartidos))
-                    {
-                        establecerLimite();
-                    }
-                    else
-                    {
-                        reestablecerLimite();
-                    }
+                int res2 = this.modeloUnico.checkVotes(votos.Text, nEscaños);
+                if (res2 == -1) { MessageBox.Show("Introduce un numero de escaños valido (un numero entero).", "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
 
-                }
-                catch (Exception)
+                if (!this.modeloUnico.Comprobar_Limite(nEscaños, infoPartidos,res2))
                 {
-                    MessageBox.Show("Introduce un numero de escaños limite valido (un numero entero).", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    establecerLimite();
                 }
+                else
+                {
+                    reestablecerLimite();
+                }
+
             }
         }
 
@@ -399,31 +325,7 @@ namespace Pactometro
             }
         }
 
-        private Boolean Comprobar_Limite(int nEscaños, Dictionary<string, Partido> infoPartidos)
-        {
-            int suma = 0;
-            foreach (var partido in infoPartidos)
-            {
-                suma += partido.Value.Votos;
-            }
-
-            suma += int.Parse(votos.Text);
-
-            try
-            {
-                if (suma > nEscaños)
-                {
-                    throw new Exception();
-                }
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("El numero de escaños totales no puede superar el máximo establecido: " + nEscaños, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
-                return false;
-            }
-            return true;
-        }
+        
 
         private void establecerLimite()
         {

@@ -108,10 +108,23 @@ namespace Pactometro
 
                     };
 
+                    MenuItem loadElectionFromFile = new MenuItem();
+                    loadElectionFromFile.Header = "Exportar datos electorales de fichero";
+                    List<Eleccion> eleccionAExportar = new List<Eleccion>();  
+                    
+                    loadElectionFromFile.Click += (loadSender, loadEventArgs) =>
+                    {
+                        foreach (Eleccion ele in resultadosLV.SelectedItems)
+                        {
+                            eleccionAExportar.Add(ele);
+                        }
+                        this.modeloUnico.exportElection(eleccionAExportar);
+                        eleccionAExportar.Clear();
+                    };
 
                     // Vamos a crear otro MenuItem para comparar
                     MenuItem compare = new MenuItem();
-                    compare.Header = "Comparar";
+                    compare.Header = "Seleccionar para comparar";
                     compare.Click += (compareSender, compareEventArgs) =>
                     {
                         // Si se selecciona para comparar, no se pueden añadir datos.
@@ -204,7 +217,7 @@ namespace Pactometro
                     contextMenu.Items.Add(modifyMenuItem);
                     contextMenu.Items.Add(deleteMenuItem);
                     contextMenu.Items.Add(compare);
-
+                    contextMenu.Items.Add(loadElectionFromFile);
                     // Añadimos el contexto a la propiedad listview.Context de los resultados.
                     resultadosLV.ContextMenu = contextMenu;
                 }
@@ -317,12 +330,31 @@ namespace Pactometro
 
                     // Gracias al metodo Select de los diccionarios podemos realizar un mapeo de los datos de forma muy sencilla.
                     // Lo bindeamos con el xaml y asociamos el Key con el nombre del partido y el Value con los escaños generando una lista.
-                    var partyDataCollection = partyData.Select(pair => new { Key = pair.Nombre, Value = pair.Votos }).ToList();
+                    if (partyData != null)
+                    {
+                        var partyDataCollection = partyData.Select(pair => new { Key = pair.Nombre, Value = pair.Votos }).ToList();
 
-                    resultadosLV2.ItemsSource = partyDataCollection;
+                        resultadosLV2.ItemsSource = partyDataCollection;
+                    }
                 }
 
             }
+        }
+
+        private void _saveAll_Click(object sender, RoutedEventArgs e)
+        {
+            this.modeloUnico.exportAll();
+           
+        }
+
+        private void _importFromFile_Click(object sender, RoutedEventArgs e)
+        {
+            this.modeloUnico.importFromFile(false);
+        }
+
+        private void _newDataFile_Click(object sender, RoutedEventArgs e)
+        {
+            this.modeloUnico.importFromFile(true);
         }
     }
         
